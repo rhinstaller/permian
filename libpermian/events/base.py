@@ -78,6 +78,36 @@ class Event():
         """
         return library.getTestPlansByQuery('event.handles_testplan_artifact_type(tp.artifact_type) and tp.eval_execute_on(event=event)', event=self)
 
+    @property
+    def additional_testplans_data(self):
+        """ Event can provide additional testplans. Returns python
+        dicts, as if they were tclib files read by yaml.safe_load.
+
+        :return: list of testplan data
+        :rtype: tuple
+        """
+        return None
+
+    @property
+    def additional_requrements_data(self):
+        """ Event can provide additional requrements. Returns python
+        dicts, as if they were tclib files read by yaml.safe_load.
+
+        :return: list of requrements data
+        :rtype: tuple
+        """
+        return None
+
+    @property
+    def additional_testcases_data(self):
+        """ Event can provide additional testcases. Returns python
+        dicts, as if they were tclib files read by yaml.safe_load.
+
+        :return: list of testcases data
+        :rtype: tuple
+        """
+        return None
+
     def __getattr__(self, attrname):
         if attrname not in EventStructuresFactory.known():
             return super().__getattribute__(attrname)

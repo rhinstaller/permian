@@ -129,7 +129,10 @@ class Pipeline():
         except KeyError:
             target_directory = library_repo.clone(target_directory, self.event, self.settings)
         self.settings.load_from_library(target_directory)
-        self.library = Library(target_directory)
+        self.library = Library(target_directory,
+                               additional_testplans=self.event.additional_testplans_data,
+                               additional_requirements=self.event.additional_requrements_data,
+                               additional_testcases=self.event.additional_testcases_data)
 
     def _makeTestRuns(self):
         """

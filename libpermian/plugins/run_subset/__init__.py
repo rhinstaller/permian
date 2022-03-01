@@ -31,6 +31,18 @@ class RunSubsetEvent(Event):
     def format_branch_spec(self, fmt):
         return self.original_event.format_branch_spec(fmt)
 
+    @property
+    def additional_testplans_data(self):
+        return self.original_event.additional_testplans_data
+
+    @property
+    def additional_requrements_data(self):
+        return self.original_event.additional_requrements_data
+
+    @property
+    def additional_testcases_data(self):
+        return self.original_event.additional_testcases_data
+
     def generate_caseRunConfigurations(self, library):
         crcList = CaseRunConfigurationsList()
         original_crcList = self.original_event.generate_caseRunConfigurations(library)
