@@ -24,6 +24,7 @@ class TestEventOptions(unittest.TestCase):
                     'testcases_queries': None,
                     'configurations': None,
                     'crc_queries': None,
+                    'display_name': None,
                 }
             })
         )
@@ -53,6 +54,7 @@ class TestEventOptions(unittest.TestCase):
                     'testcases_queries': ['someTestCaseQuery'],
                     'configurations': [{'some':'configuration'}],
                     'crc_queries': ['someCrcQuery'],
+                    'display_name': None,
                 }
             })
         )
@@ -94,6 +96,7 @@ class TestEventOptions(unittest.TestCase):
                         {'another': 'configuration'}
                     ],
                     'crc_queries': ['someCrcQuery', 'anotherCrcQuery'],
+                    'display_name': None,
                 }
             })
         )
@@ -126,6 +129,7 @@ class TestEventOptions(unittest.TestCase):
                         }
                     ],
                     'crc_queries': None,
+                    'display_name': None,
                 }
             })
         )

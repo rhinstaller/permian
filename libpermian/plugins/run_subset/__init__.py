@@ -135,11 +135,12 @@ class RunSubsetEvent(Event):
         return getattr(self.original_event, attrname)
 
     def __str__(self):
-        return f'(subset) {self.original_event}'
+        display_name = self.run_subset.display_name + ' - ' if self.run_subset.display_name else ''
+        return f'(subset) {display_name}{self.original_event}'
 
 @api.events.register_structure('run_subset')
 class RunSubsetStructure(BaseStructure):
-    def __init__(self, settings, event, testplans=None, testplans_queries=None, testcases=None, testcases_queries=None, configurations=None, crc_queries=None):
+    def __init__(self, settings, event, testplans=None, testplans_queries=None, testcases=None, testcases_queries=None, configurations=None, crc_queries=None, display_name=None):
         super().__init__(settings)
         self.event = event
         self.testplans = testplans
@@ -148,6 +149,7 @@ class RunSubsetStructure(BaseStructure):
         self.testcases_queries = testcases_queries
         self.configurations = configurations
         self.crc_queries = crc_queries
+        self.display_name = display_name
 
 @api.cli.register_command_parser('run_subset')
 def subset_command(base_parser, args):
@@ -176,6 +178,10 @@ def subset_command(base_parser, args):
         help='Execute only selected caseRunConfigurations complying to the query. The caseRunConfiguration is exposed as `crc` variable.',
     )
     base_parser.add_argument(
+        '--display-name',
+        help='Optional display name that will be added to the string representing the Event',
+    )
+    base_parser.add_argument(
         'command',
         choices=CliFactory.known_commands((None, 'pipeline', 'run_subset'))
     )
@@ -192,6 +198,7 @@ def subset_command(base_parser, args):
             'testcases_queries': options.testcase_query,
             'configurations': options.configuration,
             'crc_queries': options.crc_query,
+            'display_name': options.display_name,
         },
     }
     return options, json.dumps(event)
