@@ -68,11 +68,31 @@ class TestCaseRunConfigurationLogs(unittest.TestCase):
         # Check the logs directory belonging to the crc contains the log
         self.assertEqual(
             os.listdir(os.path.join(self.logsdir.name, self.crc.id)),
-            ["foo.txt"]
+            ["foo"]
         )
         with self.crc.openLogfile('foo') as logfile:
             self.assertEqual(logfile.read(), message)
-        with open(os.path.join(self.logsdir.name, self.crc.id, 'foo.txt')) as direct_logfile:
+        with open(os.path.join(self.logsdir.name, self.crc.id, 'foo')) as direct_logfile:
+            self.assertEqual(direct_logfile.read(), message)
+
+    def testOpenLogfileLocalWithFilename(self):
+        message = 'Hello!'
+        filename = 'foo.bar.txt'
+        with self.crc.openLogfile('foo', 'w', filename=filename) as logfile:
+            logfile.write(message)
+        # Check there's directory for the logs belonging to the crc
+        self.assertEqual(
+            os.listdir(self.logsdir.name),
+            [self.crc.id]
+        )
+        # Check the logs directory belonging to the crc contains the log
+        self.assertEqual(
+            os.listdir(os.path.join(self.logsdir.name, self.crc.id)),
+            [filename]
+        )
+        with self.crc.openLogfile('foo', filename=filename) as logfile:
+            self.assertEqual(logfile.read(), message)
+        with open(os.path.join(self.logsdir.name, self.crc.id, filename)) as direct_logfile:
             self.assertEqual(direct_logfile.read(), message)
 
     def testOpenLogfileLocalAdded(self):

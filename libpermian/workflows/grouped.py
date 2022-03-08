@@ -192,6 +192,6 @@ class GroupedWorkflow(threading.Thread, metaclass=abc.ABCMeta):
         if crcList is None:
             crcList = self.crcList
         for crc in crcList:
-            with crc.openLogfile(name, 'a', True) as fo:
+            with crc.openLogfile(name, 'a', True, filename=f"{name}.txt") as fo:
                 fo.write(message)
                 fo.write("\n")

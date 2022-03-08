@@ -154,10 +154,11 @@ class CaseRunConfiguration():
             raise LocalLogExistsError(self.id, name, self.logs[name], logfile)
         self.logs[name] = logfile
 
-    def openLogfile(self, name, mode="r", autoadd=False):
+    def openLogfile(self, name, mode="r", autoadd=False, filename=None):
         """
         Create (if doesn't exist) and open a logfile of given name related to
-        the crcId. If autoadd is true, add the log path to the related crcId.
+        the crcId. If autoadd is true, add the computed log path (from workflows
+        settings and optional filename argument) to the related crcId.
 
         Raise RemoteLogError if the crc already has remote log assigned.
         """
@@ -167,7 +168,7 @@ class CaseRunConfiguration():
             log_path = os.path.join(
                 self.testrun.settings.get('workflows', 'local_logs_dir'),
                 self.id,
-                f'{name}.txt'
+                filename or name
             )
         if log_path.startswith('file://'):
             log_path = log_path[7:] # trim the file://
