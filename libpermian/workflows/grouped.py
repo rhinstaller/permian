@@ -173,6 +173,25 @@ class GroupedWorkflow(threading.Thread, metaclass=abc.ABCMeta):
         for crc in crcList:
             crc.addLog(name, log_path)
 
+    def groupLogData(self, data, name, crcList=None, filename=None):
+        """
+        Write bytes from *data* to file named *name* under crc's log
+        directory.
+
+        *name* and *filename* have the same meaning as in the method
+        CaseRunConfiguration.openLogfile().  *data* is the bytes to
+        write.
+
+        If *crcList* is not provided, all related crcIds are affected.
+
+        File is overwritten if it exists.
+        """
+        if crcList is None:
+            crcList = self.crcList
+        for crc in crcList:
+            with crc.openLogfile(name, mode='wb', autoadd=True, filename=filename) as fo:
+                fo.write(data)
+
     def formatLogMessage(self, message):
         return self.logFormat.format(
             message=message,
