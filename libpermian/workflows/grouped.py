@@ -16,6 +16,8 @@ class GroupedWorkflow(threading.Thread, metaclass=abc.ABCMeta):
     Workflow instances should not be directly created, use the factory method
     which should handle creation of the workflow instances.
     """
+    silent_exceptions = tuple()
+
     @classmethod
     @abc.abstractmethod
     def factory(cls, testRuns, crcList):
@@ -61,6 +63,9 @@ class GroupedWorkflow(threading.Thread, metaclass=abc.ABCMeta):
         try:
             self.setup()
             self.execute() if not self.dryRun else self.dry_execute()
+        except self.silent_exceptions as e:
+            self.groupLog(f'Workflow raised silent exception: {e}')
+            self.groupReportResult(self.crcList, Result('DNF', 'ERROR', True))
         except Exception as e:
             self.exceptions.append(dump_exception(e, self))
             self.groupReportResult(self.crcList, Result('DNF', 'ERROR', True))
