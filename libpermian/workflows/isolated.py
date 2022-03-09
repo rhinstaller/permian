@@ -100,5 +100,8 @@ class IsolatedWorkflow(GroupedWorkflow):
     def addLog(self, name, log_path):
         return self.groupAddLog(name, log_path)
 
+    def logData(self, data, name, filename=None):
+        return self.groupLogData(data, name, filename=filename)
+
     def log(self, message, name="workflow"):
         return self.groupLog(message, name)
