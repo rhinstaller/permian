@@ -8,6 +8,14 @@ execution:
     - state: complete
       result: FAIL
       final: true
+      log_data:
+        name: horse
+        filename: yellow
+        data_hex: |
+          50 c5 99 c3 ad c5 a1 65  72 6e c4 9b 20 c5 be 6c
+          75 c5 a5 6f 75 c4 8d 6b  c3 bd 20 6b c5 af c5 88
+          20 c3 ba 70 c4 9b 6c 20  c4 8f c3 a1 62 65 6c 73
+          6b c3 a9 20 c3 b3 64 79  0a
       log_content:
         testissue_2: |
           some_resolved_issue_url

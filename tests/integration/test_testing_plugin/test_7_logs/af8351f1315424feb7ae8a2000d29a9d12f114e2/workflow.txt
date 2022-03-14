@@ -1,4 +1,5 @@
-0 - Running step no 1: {'state': 'complete', 'result': 'FAIL', 'final': True, 'log_content': {'testissue_2': 'some_resolved_issue_url\nsome_resolved_issue_report_url\ntrue\n'}}
+0 - Running step no 1: {'state': 'complete', 'result': 'FAIL', 'final': True, 'log_data': {'name': 'horse', 'filename': 'yellow', 'data_hex': '50 c5 99 c3 ad c5 a1 65  72 6e c4 9b 20 c5 be 6c\n75 c5 a5 6f 75 c4 8d 6b  c3 bd 20 6b c5 af c5 88\n20 c3 ba 70 c4 9b 6c 20  c4 8f c3 a1 62 65 6c 73\n6b c3 a9 20 c3 b3 64 79  0a\n'}, 'log_content': {'testissue_2': 'some_resolved_issue_url\nsome_resolved_issue_report_url\ntrue\n'}}
 1 - Writing message to log: testissue_2
+1 - Writing data to log: 57 bytes, name=horse filename=yellow
 1 - Reporting Result(complete, FAIL, True)
 1 - Changing state to: "complete" with result: "FAIL"
