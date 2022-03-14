@@ -16,6 +16,31 @@ from libpermian.events.structures.base import BaseStructure
 LOGGER = logging.getLogger(__name__)
 
 
+def decode_hex(string):
+    """
+    Decode hexdump string
+
+    *string* must be an ASCII string describing binary data as
+    hexadecimal bytes, ie. each line must have this form:
+
+          BYTE [BYTE]..
+
+    where each BYTE is a two-digit hexadecimal number.  Lines
+    are joined before decoding.
+
+    For example:
+
+        >>> decode_hex('aa bb\ncc')
+        b'\xaa\xbb\xcc'
+
+    describes binary blob containing  three bytes: AA, BB and CC.
+    """
+    hexstr = ''
+    for line in string.split('\n'):
+        hexstr += ''.join(line.split())
+    return bytes.fromhex(hexstr)
+
+
 @api.cli.register_command_parser('test')
 def test_command(base_parser, args):
     parser = base_parser
@@ -76,6 +101,14 @@ class TestWorkflow(IsolatedWorkflow):
                     self.log(f"Writing message to log: {logname}")
                     with self.crc.openLogfile(logname, 'w', True) as fo:
                         fo.write(content)
+
+            if self.terminated: break
+            if 'log_data' in step:
+                name = step['log_data']['name']
+                data = decode_hex(step['log_data']['data_hex'])
+                filename = step['log_data'].get('filename')
+                self.log(f"Writing data to log: {len(data)} bytes, name={name} filename={filename}")
+                self.logData(data, name, filename=filename)
 
             if self.terminated: break
             if 'log_file' in step:
