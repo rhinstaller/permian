@@ -113,10 +113,12 @@ h1 {
 
 .crc_logs ul {
     max-height: 2.2em;
-    overflow-y: hidden;
+    max-width: 150px;
+    overflow: hidden;
     text-align: left;
     list-style-position: inside;
     padding: 0px;
+    white-space: nowrap;
 }
 
 .crc_logs .expander {

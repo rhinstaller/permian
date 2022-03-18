@@ -8,6 +8,8 @@ execution:
     - state: queued
     - sleep: 2
     - state: running
+      log_file:
+        some_long_filename-23y9486298530986-2022: http://example.com/
     - sleep: 45
     - state: complete
       result: PASS
