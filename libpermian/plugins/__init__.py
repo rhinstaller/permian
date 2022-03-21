@@ -8,12 +8,9 @@ Plugins should add their functionality only via functions defined in
 libpermian.plugins.api
 """
 
-import logging
 import os
 import importlib
 import sys
-
-from . import api
 
 
 def env_plugins_override():
