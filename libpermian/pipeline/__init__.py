@@ -99,6 +99,7 @@ class Pipeline():
         self._set_return_code(self._waitForWorkflows(), 1)
         LOGGER.debug('Waiting for other threads to finish')
         self._waitForThreads()
+        LOGGER.info('All execution and reporting is done. Performing other post-reporting and shutdown activities.')
         LOGGER.debug('Running pipeline_ended handlers')
         hooks.builtin.pipeline_ended(self)
         LOGGER.debug('Waiting for other (post) threads to finish')

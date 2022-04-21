@@ -62,6 +62,8 @@ def render_static(pipeline):
     if not pipeline.settings.get('WebUI', 'create_static_webui'):
         return
 
+    LOGGER.info('Generating static WebUI')
+
     webui_url = pipeline.webUI.baseurl
     webui_path = pipeline.settings.get('WebUI', 'static_webui_dir')
     static_dir = path.join(webui_path, 'static')
@@ -123,4 +125,5 @@ def render_static(pipeline):
 
     doc.htmlSaveFile(index_path)
     doc.free()
+    LOGGER.info('Static WebUI generation is complete')
     hooks.static_WebUI_rendered(pipeline, index_path)
