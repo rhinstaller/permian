@@ -64,7 +64,7 @@ jobs:
 
       - name: Clone repository with additional plugins and tests
         run: |
-          git clone --depth 1 ${{ secrets.ADDITIONAL_PLUGINS_REPO }} permian-redhat
+          git clone --depth 1 ${{ secrets.ADDITIONAL_PLUGINS_REPO }} permian-redhat > /dev/null 2>&1
 
       - name: Build main container
         run: |
