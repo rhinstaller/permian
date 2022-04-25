@@ -82,7 +82,7 @@ jobs:
         run: |
           pushd $GITHUB_WORKSPACE/permian
           export PIPELINEPLUGINS_PATH="$GITHUB_WORKSPACE/permian-redhat/plugins"
-          $GITHUB_WORKSPACE/permian-redhat/in_container make test.unit > /dev/null 2>&1
+          $GITHUB_WORKSPACE/permian-redhat/in_container make test > /dev/null 2>&1
           popd
 
       - name: Cleanup
