@@ -1,7 +1,7 @@
 FROM quay.io/centos/centos:stream8
 
 # pipeline dependecies
-RUN yum -y install git python3 python3-flask python3-requests python3-libxml2 python3-yaml
+RUN yum -y install git python3 python3-flask python3-requests python3-libxml2 python3-yaml python3-magic
 # pipeline tests dependecies
 RUN yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm; \
     yum -y install make python3-pylint diffutils

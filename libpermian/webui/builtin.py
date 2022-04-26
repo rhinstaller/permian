@@ -1,4 +1,5 @@
 import logging
+import magic
 from flask import Blueprint, render_template, jsonify, request, redirect, Response
 
 from ..exceptions import RemoteLogError
@@ -57,8 +58,9 @@ def pipeline_data():
 def logs(crcid, name):
     pipeline = currentPipeline()
     try:
-        with pipeline.testRuns.caseRunConfigurations[crcid].openLogfile(name) as logfile:
-            return Response(logfile.read(), mimetype="text/plain")
+        with pipeline.testRuns.caseRunConfigurations[crcid].openLogfile(name, mode='rb') as logfile:
+            data = logfile.read()
+            return Response(data, mimetype=magic.detect_from_content(data).mime_type)
     except RemoteLogError as e:
         return redirect(e.log_path)
 
