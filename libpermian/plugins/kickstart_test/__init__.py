@@ -162,6 +162,19 @@ class KstestParamsStructure(BaseStructure):
         self.platform = platform
         self.urls = urls or dict()
 
+    def to_bootIso(self):
+        boot_isos = {}
+
+        for arch, urls in self.urls.items():
+            if 'installation_tree' in urls.keys():
+                boot_isos[arch] = os.path.join(urls['installation_tree'],
+                                               BOOT_ISO_PATH_IN_INSTALLATION_TREE)
+
+        if not boot_isos:
+            return NotImplemented
+
+        return BootIsoStructure(self.settings, **boot_isos)
+
 
 @api.workflows.register("kickstart-test")
 class KickstartTestWorkflow(GroupedWorkflow):
@@ -221,23 +234,11 @@ class KickstartTestWorkflow(GroupedWorkflow):
 
         :param urls: structure holding scenario data
         :type urls: InstallationUrlsStructure
-        :returns: tuple with
-                  - boot.iso URL based on installation_tree location or None if
-                    the installation_tree location is not available
-                  - path of override defaults file with urls to be used by launcher
-                    or None if there are no relevant overrides
-        :rtype: (str, str))
+        :returns: path of override defaults file with urls to be used by launcher
+                  or None if there are no relevant overrides
+        :rtype: str
         """
-        boot_iso_url = None
         url_overrides_path = None
-
-        try:
-            tree = urls[self.arch]['installation_tree']
-        except KeyError:
-            pass
-        else:
-            if tree:
-                boot_iso_url = os.path.join(tree, BOOT_ISO_PATH_IN_INSTALLATION_TREE)
 
         # Configure installation repositories
         variable_overrides = self._get_url_overrides(urls)
@@ -247,7 +248,7 @@ class KickstartTestWorkflow(GroupedWorkflow):
                         f"{url_overrides_path} with content:"
                         f"\n{variable_overrides}")
 
-        return (boot_iso_url, url_overrides_path)
+        return url_overrides_path
 
     def setup(self):
         if self.arch not in SUPPORTED_ARCHITECTURES:
@@ -262,19 +263,11 @@ class KickstartTestWorkflow(GroupedWorkflow):
 
         urls = self.event.kstestParams.urls
         if urls:
-            tree_boot_iso_url, url_overrides_path = self.process_installation_urls(urls)
-            self.boot_iso_url = self.boot_iso_url or tree_boot_iso_url
-            self.url_overrides_path = url_overrides_path
+            self.url_overrides_path = self.process_installation_urls(urls)
 
-        if self.event.bootIso:
-            try:
-                boot_iso_url = self.event.bootIso[self.arch]
-            except KeyError:
-                boot_iso_url = None
-            if boot_iso_url:
-                self.boot_iso_url = boot_iso_url
-
-        if not self.boot_iso_url:
+        try:
+            self.boot_iso_url = self.event.bootIso[self.arch]
+        except (TypeError, KeyError):  # BootIsoStructure or requred architecture is not available
             LOGGER.info(f"Installer boot.iso location configuration for {self.arch} is missing")
             raise MissingBootIso(self.arch)
 
