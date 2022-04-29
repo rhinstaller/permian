@@ -155,3 +155,9 @@ class TestEventStructuresIntegration(unittest.TestCase):
         event = EventFactory.make(None, '{"type": "test", "foo": {}}')
         with self.assertRaises(AttributeError):
             event.unknown
+
+    def test_convert_not_needed(self):
+        # Verifies that conversion is not done if all structures are provided
+        event = EventFactory.make(None, '{"type": "test", "baz": {"values": "hello"}, "bar": {"data": "world"}}')
+        self.assertEqual(event.baz.values, 'hello')
+        self.assertEqual(event.bar.data, 'world')
