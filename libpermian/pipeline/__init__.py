@@ -32,6 +32,17 @@ def run_pipeline(event, settings_paths, overrides, env=None):
     pipeline.run()
     return pipeline.return_code
 
+def get_caserunconfigurations(event, settings_paths, overrides, env=None):
+    """
+    Instead of running the full pipeline, only generate CaseRunConfigurations
+    that would be executed for provided event using provided settings.
+
+    Uses the same arguments as run_pipeline
+    """
+    pipeline = Pipeline(event, settings_paths, overrides, env)
+    pipeline._cloneLibrary()
+    return pipeline.event.generate_caseRunConfigurations(pipeline.library)
+
 class Pipeline():
     """
     Create pipeline object providing all essential information required for the

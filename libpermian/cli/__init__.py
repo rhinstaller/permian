@@ -14,7 +14,7 @@ import os
 import logging
 
 from .. import plugins
-from ..pipeline import run_pipeline
+from ..pipeline import run_pipeline, get_caserunconfigurations
 from .factory import CliFactory
 from . import builtin
 
@@ -55,9 +55,28 @@ def main(*raw_args):
         handlers=handlers,
     )
     logging.getLogger('libpermian').setLevel(logging.DEBUG)
+    logger = logging.getLogger(__name__)
     # the whole logging setup stuff should be probably moved elsewhere
     if options.generate_event:
         print(event_spec)
         sys.exit(0)
+    if options.check_testruns:
+        crcList = get_caserunconfigurations(event_spec, options.settings, options.override)
+        logger.info("Would execute %d case run configurations", len(crcList))
+        logger.debug(
+            "Case Run configurations that would be executed:\n %s",
+            "\n ".join([repr(crc) for crc in crcList]),
+        )
+        logger.info("Would execute %d test cases", len(crcList.by_testcase()))
+        logger.debug(
+            "Test cases that would be executed: \n %s",
+            "\n ".join(crcList.by_testcase().keys()),
+        )
+        logger.info("Would execute %d test plans", len(crcList.by_testplan()))
+        logger.debug(
+            "Test plans that would be executed: \n %s",
+            "\n ".join(crcList.by_testplan().keys()),
+        )
+        sys.exit(0 if crcList else 1)
     result = run_pipeline(event_spec, options.settings, options.override)
     sys.exit(result)

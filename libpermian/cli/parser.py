@@ -21,6 +21,11 @@ def base_argparser():
         help="Don't run the pipeline but generate event specification string for the event used.",
     )
     parser.add_argument(
+        '--check-testruns',
+        action='store_true',
+        help="Don't run the pipeline but check if there's anything to be executed for provided event (with provided settings). The return code is zero if there's anything to be executed.",
+    )
+    parser.add_argument(
         '--debug-log',
         type=argparse.FileType('w'),
         help="Name of file where debug logs should be stored.",
