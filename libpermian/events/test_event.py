@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import patch
 from .base import Event
 from ..settings import Settings
-from tclib import library
+from tplib import library
 
 
 class TestCaseRunsConfigurationsMerge(unittest.TestCase):

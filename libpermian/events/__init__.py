@@ -57,7 +57,7 @@ for pipeline execution, the Pipeline would do something similar::
   }'''
   event = EventFactory.make(settings, event_string)
   branch = event.format_branch_spec(branch_format)
-  # pipeline would clone the git repository fetching the branch and proceed with next steps (passing the event along with tclib.Library and settings for the execution)
+  # pipeline would clone the git repository fetching the branch and proceed with next steps (passing the event along with tplib.Library and settings for the execution)
 
 The event can also hold additional structures (like "other" shown above) which
 are python objects created based on the content of the item which would be::

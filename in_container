@@ -7,4 +7,4 @@ else
     webui_port=$(comm -23 <(seq 49152 65535 | sort) <(ss -Htan | awk '{print $4}' | cut -d':' -f2 | sort -u) | shuf | head -n 1)
 fi
 
-podman run --rm -it --publish 127.0.0.1:${webui_port}:${webui_port} -e 'PIPELINE*' -e PIPELINE_WebUI_listen_port=${webui_port} -v `pwd`:/root/permian:Z -w /root/permian -e PYTHONPATH=/root/tclib permian "$@"
+podman run --rm -it --publish 127.0.0.1:${webui_port}:${webui_port} -e 'PIPELINE*' -e PIPELINE_WebUI_listen_port=${webui_port} -v `pwd`:/root/permian:Z -w /root/permian -e PYTHONPATH=/root/tplib permian "$@"

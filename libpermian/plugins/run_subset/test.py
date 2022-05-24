@@ -2,7 +2,7 @@ import json
 import unittest
 from unittest.mock import patch, create_autospec, MagicMock
 
-from tclib.library import Library
+from tplib.library import Library
 
 from libpermian.caserunconfiguration import CaseRunConfigurationsList
 from libpermian.cli.factory import CliFactory
