@@ -17,7 +17,7 @@ class CaseRunConfiguration():
     handling of the case-run-configuration.
 
     :param testcase: Test case for which the case-run is executed.
-    :type testcase: tclib.structures.testcase.TestCase
+    :type testcase: tplib.structures.testcase.TestCase
     :param configuration: Configuration for which the case-run is executed.
     :type configuration: dict
     :param testplans: List of testplan ids for which the case-run-configuration executed.
@@ -143,7 +143,7 @@ class CaseRunConfiguration():
         If the state None, assign workflow and change state to queued.
 
         :param workflow: Mark this workflow as the one handling this case-run-configuration.
-        :type workflow: tclib.Workflow
+        :type workflow: tplib.Workflow
         :raises ValueError: When a different workflow instance is assigned.
         :return: None
         :rtype: None
@@ -366,9 +366,9 @@ class ConfigurationsList(list):
         If other configurations is empty, empty dict is added
 
         :param testcase: Testcase
-        :type testcase: tclib.TestCase
+        :type testcase: tplib.TestCase
         :param testplan: Testplan
-        :type testplan: tclib.TestPlan
+        :type testplan: tplib.TestPlan
         :return: Configurations
         :rtype: list of dicts
         """

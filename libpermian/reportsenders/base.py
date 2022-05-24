@@ -23,9 +23,9 @@ class BaseReportSender(threading.Thread, metaclass=abc.ABCMeta):
     deliver the desired reporting.
 
     :param testplan: TestPlan instance for which the reporting should be done.
-    :type testplan: tclib.structures.testplan.TestPlan
+    :type testplan: tplib.structures.testplan.TestPlan
     :param reporting_structure: Test Plan reporting item containing data for this instance.
-    :type reporting_structure: tclib.structures.testplan.Reporting
+    :type reporting_structure: tplib.structures.testplan.Reporting
     :param caseRunConfigurations: List of case-run-configurations for which the reports should be sent.
     :type caseRunConfigurations: list[:class:`libpermian.testrun.CaseRunConfiguration`]
     :param event: Event based on which the reporting should be done. The ReportSender may use this to obtain more information useful for reporting.

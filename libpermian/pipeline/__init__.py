@@ -2,7 +2,7 @@ import copy
 import os
 import threading
 import logging
-from tclib.library import Library
+from tplib.library import Library
 
 from ..settings import Settings
 from ..events.factory import EventFactory
@@ -133,7 +133,7 @@ class Pipeline():
         """
         Clone repository containing testplans, requirements and testcases and
         store them in :py:attr:`library` attribute using
-        :py:class:`tclib.Library`.
+        :py:class:`tplib.Library`.
         """
         try:
             # first try direct specification of path to library

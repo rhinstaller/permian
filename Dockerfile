@@ -17,7 +17,7 @@ RUN yum-config-manager --enable powertools; \
 
 # fetch other libraries and tools
 WORKDIR /root
-RUN git clone https://github.com/rhinstaller/tclib.git
+RUN git clone https://github.com/rhinstaller/tplib.git
 
 # set up git
 RUN git config --global user.email "nobody@example.com"; \
