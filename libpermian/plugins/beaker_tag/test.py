@@ -5,7 +5,7 @@ from libpermian.settings import Settings
 from libpermian.caserunconfiguration import CaseRunConfiguration, CaseRunConfigurationsList
 from libpermian.result import Result
 from libpermian.issueanalyzer.proxy import IssueAnalyzerProxy
-from tclib import library
+from tplib import library
 
 
 class DummyTestCase():

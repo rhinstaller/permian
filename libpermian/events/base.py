@@ -40,7 +40,7 @@ class Event():
         """ Generates caseRunConfigurations for testcases in library relevant to this event
 
         :param library: Library
-        :type library: tclib.Library
+        :type library: tplib.Library
         :return: CaseRunConfigurations
         :rtype: CaseRunConfigurationsList
         """
@@ -72,16 +72,16 @@ class Event():
         - testplan execute_on filter
 
         :param library: pipeline library
-        :type library: tclib.Library
+        :type library: tplib.Library
         :return: Filtered testplans
-        :rtype: list of tclib.TestPlan
+        :rtype: list of tplib.TestPlan
         """
         return library.getTestPlansByQuery('event.handles_testplan_artifact_type(tp.artifact_type) and tp.eval_execute_on(event=event)', event=self)
 
     @property
     def additional_testplans_data(self):
         """ Event can provide additional testplans. Returns python
-        dicts, as if they were tclib files read by yaml.safe_load.
+        dicts, as if they were tplib files read by yaml.safe_load.
 
         :return: list of testplan data
         :rtype: tuple
@@ -91,7 +91,7 @@ class Event():
     @property
     def additional_requrements_data(self):
         """ Event can provide additional requrements. Returns python
-        dicts, as if they were tclib files read by yaml.safe_load.
+        dicts, as if they were tplib files read by yaml.safe_load.
 
         :return: list of requrements data
         :rtype: tuple
@@ -101,7 +101,7 @@ class Event():
     @property
     def additional_testcases_data(self):
         """ Event can provide additional testcases. Returns python
-        dicts, as if they were tclib files read by yaml.safe_load.
+        dicts, as if they were tplib files read by yaml.safe_load.
 
         :return: list of testcases data
         :rtype: tuple

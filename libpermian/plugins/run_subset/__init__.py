@@ -1,7 +1,7 @@
 import json
 import argparse
 
-from tclib.expressions import eval_bool
+from tplib.expressions import eval_bool
 
 from .. import api
 from ...cli.factory import CliFactory

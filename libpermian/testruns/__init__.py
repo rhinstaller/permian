@@ -10,7 +10,7 @@ from ..result import Result
 LOGGER = logging.getLogger(__name__)
 
 class TestRuns():
-    """Collection of case-run-configurations based on the Test Plans, Requirements and Test Cases from tclib provided library.
+    """Collection of case-run-configurations based on the Test Plans, Requirements and Test Cases from tplib provided library.
 
     This class also handles assignment of the workflows and manages their
     execution.

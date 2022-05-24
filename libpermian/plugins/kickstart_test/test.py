@@ -11,7 +11,7 @@ from libpermian.exceptions import UnsupportedConfiguration
 from libpermian.plugins.kickstart_test import SUPPORTED_ARCHITECTURES, \
     KstestParamsStructure, MissingBootIso, MissingInformation, KickstartTestWorkflow
 
-from tclib.library import Library
+from tplib.library import Library
 
 DUMMY_BOOT_ISO_URL = "file:///tmp/boot.iso"
 

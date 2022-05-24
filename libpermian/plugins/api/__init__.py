@@ -2,7 +2,7 @@
 TODO: Add information about possibilities to extend the pipeline. It should be categorized so that one can focus only on the area they want to extend.
 
 The categories should go to individual api subpackages.
-In each category, provide description about which tclib data is handled by the extension (in case of Workflow, ReportSender)
+In each category, provide description about which tplib data is handled by the extension (in case of Workflow, ReportSender)
 
 Workflows:
 

@@ -1,5 +1,5 @@
 import unittest
-from tclib import library
+from tplib import library
 from libpermian.settings import Settings
 from libpermian.reportsenders.factory import ReportSenderFactory
 from libpermian.testruns import TestRuns

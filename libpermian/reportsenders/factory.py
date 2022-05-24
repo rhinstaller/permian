@@ -1,6 +1,6 @@
 import yaml
 from os import path
-from tclib.structures.testplan import Reporting
+from tplib.structures.testplan import Reporting
 
 
 class ReportSenderFactory():
@@ -71,8 +71,8 @@ class ReportSenderFactory():
         :param additional_file: path to file with additional reporters
         :type additional_file: string
         :param library: test data library
-        :type library: tclib.Library
-        :return: list of tclib.testplan.Reporting objects
+        :type library: tplib.Library
+        :return: list of tplib.testplan.Reporting objects
         :rtype: list
         """
         if additional_file == '':
