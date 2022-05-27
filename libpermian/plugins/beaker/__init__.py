@@ -10,6 +10,7 @@ import xmlrpc.client
 
 import bkr.common.pyconfig
 import bkr.common.hub
+import gssapi.raw.misc
 import libpermian.plugins.api.events
 from libpermian.events.structures.base import BaseStructure
 
@@ -225,4 +226,14 @@ def xmlrpc_server(settings):
         option : settings.get('beaker', option)
         for option in settings.options('beaker')
     })
-    return bkr.common.hub.HubProxy(conf=CONF)
+    # Try ten times with growing retry waiting up to 17 minutes in total
+    # before raising exception.
+    return retry_call(
+        functools.partial(bkr.common.hub.HubProxy, conf=CONF),
+        (
+            gssapi.raw.misc.GSSError,
+        ),
+        attempts=10,
+        interval=1,
+        interval_exponential_growth=2,
+    )
