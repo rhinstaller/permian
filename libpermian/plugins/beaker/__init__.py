@@ -6,6 +6,7 @@ import re
 import os
 import tempfile
 import threading
+import xmlrpc.client
 
 import bkr.common.pyconfig
 import bkr.common.hub
@@ -158,6 +159,59 @@ def wait_for_compose(name, architecture=None, labcontroller=None, timeout=7200, 
         time.sleep(wait_step)
         timeout -= wait_step
     return False
+
+
+def retry_call(func, ignore_exceptions, attempts=5, interval=1, interval_exponential_growth=1):
+    """
+    Attempt to call func repeatedly if one of provided exceptions is hit.
+    Should different exception type be hit, such exception is raised.
+    Should maximum number of attempts be hit, the last exception is raised.
+
+    :param func: callable to run
+    :type func: callable
+    :param ignore_exceptions: One exception or iterable of exceptions under which the callable should be re-run
+    :type ignore_exceptions: Exception or iterable of Exception
+    :param attempts: Number of attempts. Must be larger or equal 1. Use float('inf') for infinite number of retries.
+    :type attempts: int or float
+    :param interval: Sleep time between re-runs
+    :type interval: int or float
+    :param interval_exponential_growth: Grow the interval exponentially using the provided base. If the call is not successful, the next attempt will take the the previous iterval value multiplied by exponential_growth seconds. If the growth is 2, the iterval will be: 1, 2, 4, 8, 16, ...
+    :param interval_exponential_growth: int
+    :return: Return value of the func
+    """
+    if attempts < 1:
+        raise ValueError('Number of attempts must be larger or equal 1')
+    while True:
+        attempts -= 1
+        try:
+            return func()
+        except ignore_exceptions:
+            if attempts <= 0:
+                raise
+            time.sleep(interval)
+            interval *= interval_exponential_growth
+
+
+def retry_beaker_call(func, *args, **kwargs):
+    """
+    Shortcut for retry_call with desired (hard-coded and global) beaker
+    timeouts and intervals.
+
+    :param func: callable to run
+    :type func: callable
+    :param args: arguments passed to the callable
+    :param kwargs: keyword arguments passed to the callable
+    :return: Return value of the func called with provided args and kwargs
+    """
+    return retry_call(
+        functools.partial(
+            func,
+            *args,
+            **kwargs,
+        ),
+        (xmlrpc.client.Fault, xmlrpc.client.ProtocolError),
+        attempts=10, interval_exponential_growth=2,
+    )
 
 
 def xmlrpc_server(settings):
