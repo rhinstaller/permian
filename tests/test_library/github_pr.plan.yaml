@@ -1,0 +1,9 @@
+name: GitHub testplan 1
+description: Testplan for testing github-pr report sender
+point_person: zveleba@redhat.com
+artifact_type: test
+execute_on:
+  - filter: "tp.name in event.selected_testplans"
+parent_plan:
+reporting:
+  - type: github-pr

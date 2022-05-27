@@ -1,0 +1,8 @@
+| Test case | Configuration | Status | Result |
+| --------- | ------------- | ------ | ------ |
+{%- for crc in crcs %}
+| {{ crc.testcase.name }} | 
+{%- for c_key, c_value in crc.configuration.items() -%}
+ {{ c_key }}: {{c_value}}, {% endfor -%}
+ | {{ crc.result.state  }} | {{ crc.result.result }} |
+{%- endfor %}
