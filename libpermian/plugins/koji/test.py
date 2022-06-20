@@ -154,6 +154,31 @@ class TestKojiEventStructure(unittest.TestCase):
 
     @patch('requests.get')
     @patch('productmd.compose.Compose')
+    def test_convert_compose_multiple(self, Compose, requests_get, koji_proxy_class):
+        compose_id = 'FooBar-1.23-123456.t.98'
+        mocked_compose_relpath = '../some_compose_dir\n../another_compose_dir'
+        desired_compose_relpath = '../another_compose_dir'
+        koji_proxy_class.return_value.getBuild.return_value = {
+            'build_id' : self.build_id,
+            'task_id' : self.task_id,
+            'package_name' : self.package_name,
+        }
+        koji_proxy_class.return_value.listTags.return_value = (
+            {'name': self.new_tag},
+        )
+        Compose.return_value.info.compose.id = compose_id
+        requests_get.return_value.ok = True
+        requests_get.return_value.text = mocked_compose_relpath
+        koji_build = KojiBuild(self.settings, self.nvr)
+        compose = koji_build.to_compose()
+        self.assertEqual(compose.id, compose_id)
+        self.assertEqual(
+            compose.location,
+            f'{self.composes_baseurl}/{desired_compose_relpath}'
+        )
+
+    @patch('requests.get')
+    @patch('productmd.compose.Compose')
     def test_convert_compose_fail(self, Compose, requests_get, koji_proxy_class):
         compose_id = 'FooBar-1.23-123456.t.98'
         compose_relpath = '../some_compose_dir'

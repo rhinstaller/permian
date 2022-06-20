@@ -90,7 +90,8 @@ class KojiBuild(BaseStructure):
         while wait_until is None or datetime.datetime.now() < wait_until:
             response = requests.get(entrypoint)
             if response.ok:
-                compose_relpath = response.text.strip()
+                compose_relpaths = response.text.strip()
+                compose_relpath = compose_relpaths.split('\n')[-1]
                 compose_path = f'{entrypoint_dir}/{compose_relpath}'
                 try:
                     compose_id = productmd.compose.Compose(compose_path).info.compose.id
