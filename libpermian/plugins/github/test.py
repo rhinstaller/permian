@@ -28,6 +28,8 @@ class ResultMock201():
 
 
 class CustomReportingData():
+    type = 'github-pr'
+    submit_issues = None
     data = {'pr-check-name': 'Special check',
             'pr-check-summary': 'Summary',
             'output-text': '{{ crcs.result }}'}
