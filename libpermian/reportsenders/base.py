@@ -2,6 +2,7 @@ import threading
 import queue
 import abc
 import logging
+import time
 
 from ..caserunconfiguration import CaseRunConfiguration, CaseRunConfigurationsList
 from ..exceptions import UnexpectedState
@@ -49,6 +50,10 @@ class BaseReportSender(threading.Thread, metaclass=abc.ABCMeta):
         self.resultsQueue = queue.Queue()
         self.exception = None
 
+        # Get throttleInterval from settings.reportSender{type} or settings.reportSenders
+        self.throttleInterval = int(self.settings.get([f'reportSender-{self.reporting.type}', 'reportSenders'], 'throttleInterval'))
+        self.unprocessed_crcs = []
+
     def setUp(self):
         """ Executed just before the ReportSender starts """
         pass
@@ -62,14 +67,23 @@ class BaseReportSender(threading.Thread, metaclass=abc.ABCMeta):
         try:
             self.setUp()
             self.processTestRunStarted()
+            throttle_timer = time.time() + self.throttleInterval
             while True:
-                item = self.resultsQueue.get()
-                LOGGER.debug("'%s' processing: '%s'", self, item)
-                if isinstance(item, CaseRunConfiguration):
-                    if self.processResult(item):
+                try:
+                    # if throttleInterval is set, wait for new item in queue for the remainder of throttle_timer
+                    item = self.resultsQueue.get(timeout = throttle_timer-time.time() if self.throttleInterval else None)
+                    LOGGER.debug("'%s' processing: '%s'", self, item)
+                    if isinstance(item, CaseRunConfiguration):
+                        if self.processResult(item):
+                            self.resultsQueue.task_done()
+                            break
                         self.resultsQueue.task_done()
-                        break
-                    self.resultsQueue.task_done()
+                except queue.Empty:
+                    throttle_timer = time.time() + self.throttleInterval
+                    if self.unprocessed_crcs:
+                        if self.flush():
+                            self.unprocessed_crcs = []
+
             self.tearDown()
             LOGGER.debug("'%s' finished processing items (test run should be complete)", self)
             self.checkEmptyQueue()
@@ -112,20 +126,26 @@ class BaseReportSender(threading.Thread, metaclass=abc.ABCMeta):
         localCaseRunConfiguration.updateResult(crcUpdate.result)
         localCaseRunConfiguration.logs = crcUpdate.logs.copy()
 
-        if crcUpdate.result.final:
-            if self.reporting.data is None or self.reporting.data.get('submit_issues', True):
+        if crcUpdate.result.final and (self.reporting.submit_issues is None or self.reporting.submit_issues):
                 for issue in self.issuesFor([crcUpdate]):
                     issue.submit()
-            self.processFinalResult(crcUpdate)
-            # Catch end of test case
-            if all([crc.result.final for crc in self.caseRunConfigurations if crcUpdate.testcase == crc.testcase]):
-                self.processCaseRunFinished(crcUpdate.testcase.name)
-            # Catch end of testun
-            if all([crc.result.final for crc in self.caseRunConfigurations]):
-                self.processTestRunFinished()
-                return True
+
+        if not self.throttleInterval:
+            if crcUpdate.result.final:
+                self.processFinalResult(crcUpdate)
+                # Catch end of test case
+                if all([crc.result.final for crc in self.caseRunConfigurations if crcUpdate.testcase == crc.testcase]):
+                    self.processCaseRunFinished(crcUpdate.testcase.name)
+            else:
+                self.processPartialResult(crcUpdate)
         else:
-            self.processPartialResult(crcUpdate)
+            self.unprocessed_crcs.append(localCaseRunConfiguration)
+
+        if all([crc.result.final for crc in self.caseRunConfigurations]):
+            # Catch end of testun
+            self.processTestRunFinished()
+            return True
+
         return False
 
     def checkEmptyQueue(self):
@@ -255,5 +275,16 @@ class BaseReportSender(threading.Thread, metaclass=abc.ABCMeta):
         This method is called when all case-run-configurations of the TestCase
         associated with the TestRun (handled by this ResultsSender instance)
         have final result associated.
+        """
+        pass
+
+    def flush(self):
+        """
+        This method is called instead of process{something} methods when
+        reportSender throttling is enabled and should be used to submit results
+        from self.unprocessed_crcs or full state of the testrun.
+
+        :return: Flush successful
+        :rtype: bool
         """
         pass

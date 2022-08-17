@@ -1,0 +1,20 @@
+name: Throttling test 1
+description: |
+  Used for testing of reportSender throttling.
+point_person: zveleba@redhat.com
+artifact_type: test
+execute_on:
+  - filter: "tp.name in event.selected_testplans"
+verified_by:
+  test_cases:
+    direct_list:
+      - testing plugin case 1
+      - testing plugin case 2
+reporting:
+  - type: test
+    data:
+      reporter: 1
+      filename: 'throttled_report1.txt'
+configurations:
+  - test: 2
+  - test: 5

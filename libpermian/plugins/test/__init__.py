@@ -144,6 +144,7 @@ class TestReportSender(BaseReportSender):
         if self.group is not None:
             self.processing_log_filename += f'-{self.group!r}'
         self.processing_log_file = None
+        self.throttled_reporting = 0
 
     def setUp(self):
         self.processing_log_file = open(self.processing_log_filename, 'w')
@@ -176,6 +177,15 @@ class TestReportSender(BaseReportSender):
     def processCaseRunFinished(self, testCaseID):
         self.processing_log_file.write('reporter %s - finished testcase "%s" in "%s"\n' % (self.reporting.data.get('reporter', 0),
             testCaseID, self.testplan.name))
+
+    def flush(self):
+        self.throttled_reporting += 1
+        for crc in self.unprocessed_crcs:
+            self.processing_log_file.write('reporter %s - throttled reporting %i crc %s-%s - %s, %s, %s\n' % (self.reporting.data.get('reporter', 0),
+                self.throttled_reporting,
+                crc.testcase.name,
+                crc.configuration.get('test', 0),
+                crc.result.state, crc.result.result, crc.result.final))
 
 class TestIssue(BaseIssue):
     def __init__(self, settings, uri, report_url, resolved=None):
