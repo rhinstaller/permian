@@ -186,6 +186,7 @@ class TestReportSender(BaseReportSender):
                 crc.testcase.name,
                 crc.configuration.get('test', 0),
                 crc.result.state, crc.result.result, crc.result.final))
+        return True
 
 class TestIssue(BaseIssue):
     def __init__(self, settings, uri, report_url, resolved=None):
