@@ -138,7 +138,7 @@ class BaseReportSender(threading.Thread, metaclass=abc.ABCMeta):
                     self.processCaseRunFinished(crcUpdate.testcase.name)
             else:
                 self.processPartialResult(crcUpdate)
-        else:
+        elif localCaseRunConfiguration not in self.unprocessed_crcs:
             self.unprocessed_crcs.append(localCaseRunConfiguration)
 
         if all([crc.result.final for crc in self.caseRunConfigurations]):
