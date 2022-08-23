@@ -52,7 +52,6 @@ class BaseReportSender(threading.Thread, metaclass=abc.ABCMeta):
 
         # Get throttleInterval from settings.reportSender{type} or settings.reportSenders
         self.throttleInterval = int(self.settings.get([f'reportSender-{self.reporting.type}', 'reportSenders'], 'throttleInterval'))
-        self.unprocessed_crcs = []
 
     def setUp(self):
         """ Executed just before the ReportSender starts """
@@ -67,6 +66,9 @@ class BaseReportSender(threading.Thread, metaclass=abc.ABCMeta):
         try:
             self.setUp()
             self.processTestRunStarted()
+            for crc in self.caseRunConfigurations.withDirtyResult:
+                crc.result.dirty = False
+
             throttle_timer = time.time() + self.throttleInterval
             while True:
                 try:
@@ -80,9 +82,10 @@ class BaseReportSender(threading.Thread, metaclass=abc.ABCMeta):
                         self.resultsQueue.task_done()
                 except queue.Empty:
                     throttle_timer = time.time() + self.throttleInterval
-                    if self.unprocessed_crcs:
+                    if self.caseRunConfigurations.withDirtyResult:
                         if self.flush():
-                            self.unprocessed_crcs = []
+                            for crc in self.caseRunConfigurations.withDirtyResult:
+                                crc.result.dirty = False
 
             self.tearDown()
             LOGGER.debug("'%s' finished processing items (test run should be complete)", self)
@@ -138,8 +141,6 @@ class BaseReportSender(threading.Thread, metaclass=abc.ABCMeta):
                     self.processCaseRunFinished(crcUpdate.testcase.name)
             else:
                 self.processPartialResult(crcUpdate)
-        elif localCaseRunConfiguration not in self.unprocessed_crcs:
-            self.unprocessed_crcs.append(localCaseRunConfiguration)
 
         if all([crc.result.final for crc in self.caseRunConfigurations]):
             # Catch end of testun
@@ -282,7 +283,8 @@ class BaseReportSender(threading.Thread, metaclass=abc.ABCMeta):
         """
         This method is called instead of process{something} methods when
         reportSender throttling is enabled and should be used to submit results
-        from self.unprocessed_crcs or full state of the testrun.
+        from self.caseRunConfigurations.withDirtyResult or full state of the
+        testrun.
 
         :return: Flush successful
         :rtype: bool

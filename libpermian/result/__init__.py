@@ -23,7 +23,7 @@ RESULTS = OrderedDict((
 ))
 
 class Result():
-    def __init__(self, state=None, result=None, final=False, **kwargs):
+    def __init__(self, state=None, result=None, final=False, dirty=True, **kwargs):
         if state not in STATES:
             raise ValueError('Unknown state: "%s"' % state)
         if result not in RESULTS:
@@ -32,6 +32,7 @@ class Result():
         self.result = result
         self.final = final
         self.extra_fields = kwargs
+        self.dirty = dirty
 
     def update(self, result):
         if self.final:
@@ -43,10 +44,11 @@ class Result():
         if list(RESULTS).index(result.result) > list(RESULTS).index(self.result):
             self.result = result.result
         self.extra_fields.update(result.extra_fields)
+        self.dirty = True
 
     def copy(self):
         return Result(
-            self.state, self.result, self.final, **self.extra_fields
+            self.state, self.result, self.final, self.dirty, **self.extra_fields
         )
 
     def __eq__(self, other):

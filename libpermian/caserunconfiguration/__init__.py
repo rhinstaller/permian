@@ -299,6 +299,13 @@ class CaseRunConfigurationsList(list):
     def ids(self):
         return [crc.id for crc in self]
 
+    @property
+    def withDirtyResult(self):
+        try:
+            return self.by_key(lambda crc: crc.result.dirty)[True]
+        except KeyError:
+            return CaseRunConfigurationsList([])
+
     def __getitem__(self, index):
         if isinstance(index, int):
             return super().__getitem__(index)

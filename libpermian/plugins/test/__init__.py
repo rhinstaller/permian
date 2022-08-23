@@ -180,7 +180,7 @@ class TestReportSender(BaseReportSender):
 
     def flush(self):
         self.throttled_reporting += 1
-        for crc in self.unprocessed_crcs:
+        for crc in sorted(self.caseRunConfigurations.withDirtyResult, key=lambda crc: crc.id):
             self.processing_log_file.write('reporter %s - throttled reporting %i crc %s-%s - %s, %s, %s\n' % (self.reporting.data.get('reporter', 0),
                 self.throttled_reporting,
                 crc.testcase.name,
