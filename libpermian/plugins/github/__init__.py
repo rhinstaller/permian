@@ -131,7 +131,7 @@ class GitHubPullRequestReportSender(BaseReportSender):
             raise GitHubReportingException(cru_response.status_code, cru_response.text)
 
     def processPartialResult(self, crc):
-        pass
+        self.send_update(self.make_payload())
 
     def processFinalResult(self, crc):
         self.send_update(self.make_payload())
@@ -155,4 +155,8 @@ class GitHubPullRequestReportSender(BaseReportSender):
         self.send_update(self.make_payload('completed', conclusion))
 
     def processCaseRunFinished(self, testCaseID):
-        pass
+        self.send_update(self.make_payload())
+
+    def flush(self):
+        self.send_update(self.make_payload())
+        return True

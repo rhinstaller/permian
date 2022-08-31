@@ -57,7 +57,8 @@ class TestGitHubPullRequestReportSender(unittest.TestCase):
         self.reporting = CustomReportingData()
         self.settings = Settings(cmdline_overrides={'github': {'pull-request': '42',
                                                                'repository': 'user/test',
-                                                               'token': '1234'}},
+                                                               'token': '1234'},
+                                                    'reportSender-github-pr': {'throttleInterval': '0'}},
                                  environment={},
                                  settings_locations=[])
         self.library = library.Library('tests/test_library')
@@ -125,3 +126,40 @@ class TestGitHubPullRequestReportSender(unittest.TestCase):
         requests_patch.assert_called_with('https://api.github.com/repos/user/test/check-runs/47261',
             data='{"name": "Special check", "status": "completed", "output": {"title": "Special check", "summary": "Summary", "text": "PASS"}, "conclusion": "success"}',
             headers={'Accept': 'application/vnd.github.v3+json', 'Authorization': 'token 1234'})
+
+class TestGitHubPullRequestReportSenderThrottled(unittest.TestCase):
+    def setUp(self):
+        self.reporting = CustomReportingData()
+        self.settings = Settings(cmdline_overrides={'github': {'pull-request': '42',
+                                                               'repository': 'user/test',
+                                                               'token': '1234'},
+                                                    'reportSender-github-pr': {'throttleInterval': '120'}},
+                                 environment={},
+                                 settings_locations=[])
+        self.library = library.Library('tests/test_library')
+        self.crc = CaseRunConfiguration(DummyTestCase(), {'test': '1'}, [self.library.testplans['GitHub testplan 1']])
+        self.caseRunConfigurations = CaseRunConfigurationsList([self.crc])
+
+    @patch('requests.get')
+    @patch('requests.post')
+    @patch('requests.patch')
+    def test_reporting_throttled(self, requests_patch, requests_post, requests_get):
+        requests_get.return_value = ResultMock200()
+        requests_patch.return_value = ResultMock200()
+        requests_post.return_value = ResultMock201()
+
+        testplan = self.library.testplans['GitHub testplan 1']
+        report_sender = GitHubPullRequestReportSender(testplan,
+            testplan.reporting[0], self.caseRunConfigurations,
+            Event, self.settings,
+            IssueAnalyzerProxy(self.settings)
+        )
+        update_result(report_sender, self.crc, Result(state='not started', result=None, final=False))
+        report_sender.start()
+        update_result(report_sender, self.crc, Result(state='started', result=None, final=False))
+        update_result(report_sender, self.crc, Result(state='running', result=None, final=False))
+        update_result(report_sender, self.crc, Result(state='cleaning', result='PASS', final=False))
+        update_result(report_sender, self.crc, Result(state='complete', result='PASS', final=True))
+        report_sender.join()
+
+        self.assertEqual(requests_patch.call_count, 2)
