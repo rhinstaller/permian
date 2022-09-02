@@ -272,6 +272,27 @@ class TestCaseRunConfigurationsList(unittest.TestCase):
             }
         )
 
+    def test_withDirtyResult(self):
+        self.assertEqual(
+            self.crcList.withDirtyResult,
+            self.crcList,
+        )
+        self.crc12.result.dirty = False
+        self.assertEqual(
+            self.crcList.withDirtyResult,
+            CaseRunConfigurationsList([
+                self.crc11,
+                self.crc21, self.crc23,
+            ]),
+        )
+        self.crc21.result.dirty = False
+        self.assertEqual(
+            self.crcList.withDirtyResult,
+            CaseRunConfigurationsList([
+                self.crc11,
+                self.crc23,
+            ]),
+        )
 
 class TestMerge_testcase_configurations(unittest.TestCase):
     def setUp(self):
