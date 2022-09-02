@@ -51,7 +51,7 @@ class BaseReportSender(threading.Thread, metaclass=abc.ABCMeta):
         self.exception = None
 
         # Get throttleInterval from settings.reportSender{type} or settings.reportSenders
-        self.throttleInterval = int(self.settings.get([f'reportSender-{self.reporting.type}', 'reportSenders'], 'throttleInterval'))
+        self.throttleInterval = self.settings.getfloat([f'reportSender-{self.reporting.type}', 'reportSenders'], 'throttleInterval')
 
     def setUp(self):
         """ Executed just before the ReportSender starts """
