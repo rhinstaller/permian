@@ -16,15 +16,19 @@ class BaseXunitReportSender(BaseReportSender):
                             'FAIL': 'failure',
                             'ERROR': 'error'}
 
-    def generate(self, properties={}):
+    def generate(self, properties={}, crclist=None):
         """ Generates xunit xml from caseRunConfigurations, xunit template and optional properties
 
         :param properties: Example: {None: {'polarion-project-id': 'TestingProject'}, 'testcase 1': {'polarion-testcase-id': 'TEST-1234'}}, defaults to {}
         :type properties: dict, optional
+        :param crclist: CaseRunConfigurations from which to generate the xunit
+        :type crclist: CaseRunConfigurationsList
         :return: xunit xml
         :rtype: str
         """
-        return self.template.render(testcases=self.caseRunConfigurations.by_testcase(),
+        if crclist is None:
+            crclist = self.caseRunConfigurations
+        return self.template.render(testcases=crclist.by_testcase(),
                                     reportsender=self,
                                     properties=properties)
 
