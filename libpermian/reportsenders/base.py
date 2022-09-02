@@ -52,6 +52,7 @@ class BaseReportSender(threading.Thread, metaclass=abc.ABCMeta):
 
         # Get throttleInterval from settings.reportSender{type} or settings.reportSenders
         self.throttleInterval = self.settings.getfloat([f'reportSender-{self.reporting.type}', 'reportSenders'], 'throttleInterval')
+        self._nextFlush = None
 
     def setUp(self):
         """ Executed just before the ReportSender starts """
@@ -69,11 +70,9 @@ class BaseReportSender(threading.Thread, metaclass=abc.ABCMeta):
             for crc in self.caseRunConfigurations.withDirtyResult:
                 crc.result.dirty = False
 
-            throttle_timer = time.time() + self.throttleInterval
             while True:
                 try:
-                    # if throttleInterval is set, wait for new item in queue for the remainder of throttle_timer
-                    item = self.resultsQueue.get(timeout = throttle_timer-time.time() if self.throttleInterval else None)
+                    item = self.resultsQueue.get(timeout = self.nextFlush)
                     LOGGER.debug("'%s' processing: '%s'", self, item)
                     if isinstance(item, CaseRunConfiguration):
                         if self.processResult(item):
@@ -81,7 +80,7 @@ class BaseReportSender(threading.Thread, metaclass=abc.ABCMeta):
                             break
                         self.resultsQueue.task_done()
                 except queue.Empty:
-                    throttle_timer = time.time() + self.throttleInterval
+                    self.setNextFlush()
                     if self.caseRunConfigurations.withDirtyResult:
                         if self.flush():
                             for crc in self.caseRunConfigurations.withDirtyResult:
@@ -94,6 +93,39 @@ class BaseReportSender(threading.Thread, metaclass=abc.ABCMeta):
             self.exception = dump_exception(e, self)
             # reraise the exception so that it's exposed for unit tests
             raise
+
+    @property
+    def nextFlush(self):
+        """
+        Time remaining to next flush call. If throttling is not enabled,
+        return None, otherwise always return positive number of seconds,
+        in case the flush should have already happened, return 0.
+        If next flush was not set yet, set it and return time remaning
+        from now. Note that it's only guaranteed that the return value will
+        always be lower or equal than the throttle interval (or None if
+        throttling is disabled).
+
+        :return: None if throttling is disabled, otherwise seconds to next flush event, 0 if the next flush event should have already happened.
+        :rtype: None or float
+        """
+        if not self.throttleInterval:
+            return
+        if self._nextFlush is None:
+            self.setNextFlush()
+        return max(self._nextFlush - time.time(), 0)
+
+    def setNextFlush(self, flush_time=None):
+        """
+        Set time for next flush.
+        :param flush_time: Set next flush time to the value directly provided instead of computing it from current time and throttle interval.
+        :type flush_time: float (optional)
+        """
+        if not self.throttleInterval:
+            return
+        if flush_time is not None:
+            self._nextFlush = flush_time
+        else:
+            self._nextFlush = time.time() + self.throttleInterval
 
     def resultUpdate(self, crc):
         """
