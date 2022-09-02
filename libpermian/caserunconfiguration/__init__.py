@@ -296,6 +296,14 @@ class CaseRunConfigurationsList(list):
         return list(RESULTS)[max([results[crc.result.result] for crc in self])]
 
     @property
+    def hasDirtyResult(self):
+        return any([crc.result.dirty for crc in self])
+
+    @property
+    def allResultsFinal(self):
+        return all([crc.result.final for crc in self])
+
+    @property
     def ids(self):
         return [crc.id for crc in self]
 

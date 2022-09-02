@@ -244,6 +244,18 @@ class TestCaseRunConfigurationsList(unittest.TestCase):
             }
         )
 
+    def test_hasDirtyResult(self):
+        for crc in self.crcList:
+            self.assertTrue(self.crcList.hasDirtyResult)
+            crc.result.dirty = False
+        self.assertFalse(self.crcList.hasDirtyResult)
+
+    def test_allResultsFinal(self):
+        for crc in self.crcList:
+            self.assertFalse(self.crcList.allResultsFinal)
+            crc.result.final = True
+        self.assertTrue(self.crcList.allResultsFinal)
+
     def test_ids(self):
         self.assertEqual(
             self.crcList.ids,
