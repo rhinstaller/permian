@@ -58,7 +58,7 @@ class TestGitHubPullRequestReportSender(unittest.TestCase):
         self.settings = Settings(cmdline_overrides={'github': {'pull-request': '42',
                                                                'repository': 'user/test',
                                                                'token': '1234'},
-                                                    'reportSender-github-pr': {'throttleInterval': '0'}},
+                                                    'github-pr': {'throttleInterval': '0'}},
                                  environment={},
                                  settings_locations=[])
         self.library = library.Library('tests/test_library')
@@ -133,7 +133,7 @@ class TestGitHubPullRequestReportSenderThrottled(unittest.TestCase):
         self.settings = Settings(cmdline_overrides={'github': {'pull-request': '42',
                                                                'repository': 'user/test',
                                                                'token': '1234'},
-                                                    'reportSender-github-pr': {'throttleInterval': '120'}},
+                                                    'github-pr': {'throttleInterval': '120'}},
                                  environment={},
                                  settings_locations=[])
         self.library = library.Library('tests/test_library')

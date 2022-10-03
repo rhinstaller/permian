@@ -44,15 +44,20 @@ class BaseReportSender(threading.Thread, metaclass=abc.ABCMeta):
         self.caseRunConfigurations = caseRunConfigurations
         self.event = event
         self.settings = settings
-        self.dry_run = self.settings.getboolean('reportSenders', 'dry_run')
+        self.fallbackSettings = settings.sectionsView(self.fallbackSettingsSections)
+        self.dry_run = self.fallbackSettings.getboolean('dry_run')
         self.issueAnalyzerProxy = issueAnalyzerProxy
         self.group=group
         self.resultsQueue = queue.Queue()
         self.exception = None
 
         # Get throttleInterval from settings.reportSender{type} or settings.reportSenders
-        self.throttleInterval = self.settings.getfloat([f'reportSender-{self.reporting.type}', 'reportSenders'], 'throttleInterval')
+        self.throttleInterval = self.fallbackSettings.getfloat('throttleInterval')
         self._nextFlush = None
+
+    @property
+    def fallbackSettingsSections(self):
+        return [self.reporting.type, 'reportSenders']
 
     def setUp(self):
         """ Executed just before the ReportSender starts """
