@@ -3,6 +3,7 @@ import glob
 import re
 import collections
 import configparser
+import functools
 
 from .. import plugins
 
@@ -179,7 +180,7 @@ class Settings():
                     pass
         raise KeyError("No option '%s' defined in any of sections %s" % (option, sections))
 
-    def options(self, section):
+    def options(self, sections):
         """
         Provides all known options of the section from all settings
         files/overrides. The option may be defined in any of those sources to be
@@ -190,8 +191,15 @@ class Settings():
         :return: options in sections
         :rtype: set
         """
-        return set([option for settings_source in self.settings.values() if settings_source.has_section(section)
-                    for option in settings_source.options(section)])
+        if isinstance(sections, str):
+            sections = [sections]
+        return {
+            option
+            for section in sections
+            for settings_source in self.settings.values()
+            if settings_source.has_section(section)
+            for option in settings_source.options(section)
+        }
 
     def sections(self):
         """
@@ -204,22 +212,28 @@ class Settings():
         """
         return set([section for settings_source in self.settings.values() for section in settings_source.sections()])
 
+    def sectionsView(self, sections):
+        return SettingsSectionsView(self, sections)
+
     def __getitem__(self, section):
-        return SettingsSectionView(self, section)
+        return self.sectionsView([section])
 
-class SettingsSectionView():
+class SettingsSectionsView():
     """
-    View on specific section of settings.
-
-    The main purpose of this class is to provide interface for accesing settings
-    values like: ``settings[section][option]`` or other dict like approaches.
+    View on multiple sections of settings.
     """
-    def __init__(self, settings, section):
+    def __init__(self, settings, sections):
         self.settings = settings
-        self.section = section
+        self.sections = sections
+
+    def __getattr__(self, attrname):
+        if attrname.startswith('get'):
+            # return get with preset sections
+            return functools.partial(getattr(self.settings, attrname), self.sections)
+        return getattr(self.settings, attrname)
 
     def __getitem__(self, option):
-        return self.settings.get(self.section, option)
+        return self.settings.get(self.sections, option)
 
     def __iter__(self):
-        return iter(self.settings.options(self.section))
+        return iter(self.settings.options(self.sections))
