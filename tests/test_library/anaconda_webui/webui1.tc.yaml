@@ -1,0 +1,21 @@
+name: testcase WebUI 1
+description: |
+  This is a testing testcase
+author: tester@example.com
+tags:
+  - anaconda
+priority: 7
+execution:
+  type: anaconda-webui
+  automation_data:
+    script_file: ./ui/webui/test/check-basic
+    test_case: TestBasic
+instructions:
+  setup:
+    - Start installation in VM
+  steps:
+    - step: Configure instalation in WebUI
+    - step: Start installation
+      result: Installation finished
+  teardown:
+    - step: Remove VM

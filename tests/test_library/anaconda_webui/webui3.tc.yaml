@@ -1,0 +1,24 @@
+name: testcase WebUI 3
+description: |
+  This is a testing testcase
+author: tester@example.com
+tags:
+  - anaconda
+priority: 4
+execution:
+  type: anaconda-webui
+  automation_data:
+    test_repo: example_repo
+    script_file: ./check-navigation
+    test_case: TestNavigation
+filter:
+  - branch: master
+instructions:
+  setup:
+    - Start installation in VM
+  steps:
+    - step: Configure instalation in WebUI
+    - step: Start installation
+      result: Installation finished
+  teardown:
+    - step: Remove VM

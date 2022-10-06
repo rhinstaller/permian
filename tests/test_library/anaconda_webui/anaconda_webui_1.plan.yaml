@@ -1,0 +1,16 @@
+name: Anaconda WebUI plugin plan 1
+point_person: tester@example.com
+artifact_type: test
+execute_on:
+  - filter: "tp.name in event.selected_testplans"
+configurations:
+  - branch: integration-testing
+    architecture: x86_64
+verified_by:
+  test_cases:
+    direct_list:
+      - testcase WebUI 1
+      - testcase WebUI 4
+      - testcase WebUI 2
+      - testcase WebUI 3
+      - Integration testcase WebUI 1
