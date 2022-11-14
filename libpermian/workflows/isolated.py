@@ -97,8 +97,8 @@ class IsolatedWorkflow(GroupedWorkflow):
         :rtype: str
         """
 
-    def addLog(self, name, log_path):
-        return self.groupAddLog(name, log_path)
+    def addLog(self, name, log_path, copy_file=False):
+        return self.groupAddLog(name, log_path, copy_file=copy_file)
 
     def logData(self, data, name, filename=None):
         return self.groupLogData(data, name, filename=filename)

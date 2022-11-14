@@ -2,6 +2,7 @@ import logging
 from functools import lru_cache
 from hashlib import sha1
 import os
+import shutil
 import re
 
 from ..result import Result
@@ -149,7 +150,18 @@ class CaseRunConfiguration():
         :rtype: None
         """
 
-    def addLog(self, name, logfile):
+    def addLog(self, name, logfile, copy_file=False):
+        """ Associates a file with this crc.
+        
+        If copy_file is True, the file is also copied to local logs dir.
+        """
+        if copy_file:
+            with open(logfile, 'rb') as src_fo:
+                dest_fo = self.openLogfile(name, 'wb', autoadd=True)
+                shutil.copyfileobj(src_fo, dest_fo)
+            dest_fo.close()
+            return
+
         if name in self.logs and self.logs[name] != logfile:
             raise LocalLogExistsError(self.id, name, self.logs[name], logfile)
         self.logs[name] = logfile

@@ -162,7 +162,7 @@ class GroupedWorkflow(threading.Thread, metaclass=abc.ABCMeta):
         :rtype: str
         """
 
-    def groupAddLog(self, name, log_path, crcList=None):
+    def groupAddLog(self, name, log_path, crcList=None, copy_file=False):
         """
         Add arbitrary log_path to a log under specific name related to provided
         crcIds. If crcIds is not provided, all crcIds related to the workflow
@@ -176,7 +176,7 @@ class GroupedWorkflow(threading.Thread, metaclass=abc.ABCMeta):
         if crcList is None:
             crcList = self.crcList
         for crc in crcList:
-            crc.addLog(name, log_path)
+            crc.addLog(name, log_path, copy_file)
 
     def groupLogData(self, data, name, crcList=None, filename=None):
         """
