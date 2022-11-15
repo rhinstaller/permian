@@ -66,26 +66,46 @@ def render_static(pipeline):
 
     webui_url = pipeline.webUI.baseurl
     webui_path = pipeline.settings.get('WebUI', 'static_webui_dir')
+    local_logs_dir = path.join(webui_path, 'local_logs')
     static_dir = path.join(webui_path, 'static')
     index_path = path.join(webui_path, 'index.html')
 
     # Create static WebUI directory
     if not path.exists(webui_path):
         makedirs(webui_path)
+    # Create directory for static local logs
+    if not path.exists(local_logs_dir):
+        makedirs(local_logs_dir)
 
     # Modify pipeline data
     response = requests.get(webui_url + 'pipeline_data')
     pipline_data = json.loads(response.text)
     for crc in pipline_data:
-        # Handle local and external logs
+        # Download local and resolve external logs
         new_logs = dict()
         for log in crc['logs']:
-            url = f'./logs/{crc["id"]}/{log}'
-            r = requests.get(webui_url + url.lstrip('./'), allow_redirects=False)
+            r = requests.get(
+                f'{webui_url}logs/{crc["id"]}/{log}',
+                allow_redirects=False,
+            )
             if r.status_code == 302:
+                # external log
                 url = r.next.url
             else:
-                url = url + '.txt'
+                # local log
+                local_path = path.join(local_logs_dir, crc["id"], log)
+                if 'text/plain' in r.headers.get('content-type') and not local_path.endswith('.txt'):
+                    # add .txt suffix to provide hint to web servers to treat
+                    # the data as text
+                    local_path += ".txt"
+                makedirs(
+                    path.dirname(local_path),
+                    exist_ok=True,
+                )
+                with open(local_path, 'wb') as fd:
+                    for chunk in r.iter_content(chunk_size=128):
+                        fd.write(chunk)
+                url = local_path
             new_logs[log] = url
         crc['logs'] = new_logs
 
