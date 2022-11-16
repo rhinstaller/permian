@@ -44,17 +44,16 @@ jobs:
     name: Check if some secrets are set
     runs-on: ubuntu-latest
     outputs:
-      extra_plugins_available: ${{ steps.extra_plugins.outputs.extra_plugins_available }}
+      result: ${{ steps.extra_plugins.outputs.result }}
     steps:
       - name: Check if ADDITIONAL_PLUGINS_REPO is set
         id: extra_plugins
-        run: |
-            echo "::set-output name=extra_plugins_available::${{ secrets.ADDITIONAL_PLUGINS_REPO != '' }}"
+        run: echo "result=${{ secrets.ADDITIONAL_PLUGINS_REPO != '' }}" >> $GITHUB_OUTPUT
 
   extra-plugins:
-    needs: [secrets-check]
     runs-on: [self-hosted, kstest]
-    if: needs.secrets-check.outputs.extra_plugins_available == 'true'
+    needs: secrets-check
+    if: needs.secrets-check.outputs.result
     steps:
       - name: Checkout change
         uses: actions/checkout@v3
