@@ -1,5 +1,6 @@
 import logging
 import magic
+import mimetypes
 from flask import Blueprint, render_template, jsonify, request, redirect, Response
 
 from ..exceptions import RemoteLogError
@@ -60,7 +61,8 @@ def logs(crcid, name):
     try:
         with pipeline.testRuns.caseRunConfigurations[crcid].openLogfile(name, mode='rb') as logfile:
             data = logfile.read()
-            return Response(data, mimetype=magic.detect_from_content(data).mime_type)
+            mimetype = mimetypes.guess_type(logfile.name)[0] or magic.detect_from_content(data).mime_type
+            return Response(data, mimetype=mimetype)
     except RemoteLogError as e:
         return redirect(e.log_path)
 
