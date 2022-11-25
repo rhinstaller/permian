@@ -26,3 +26,8 @@ Execute all or just part of the tests
 ```
 ./in_container make doc
 ```
+
+Documentation
+-------------
+The rendered documentation is located at http://permian.readthedocs.io.
+
