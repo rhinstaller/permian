@@ -19,7 +19,7 @@ from libpermian.plugins.beaker import BeakerCompose
 
 TAG_REGEXPS = (
     # product-1.2.3-state
-    re.compile('(?P<product>[^-]+)-(?P<major>[0-9]+).(?P<minor>[0-9]+).(?P<qr>[0-9]+)-(?P<state>[^-]+)'),
+    re.compile('(?P<product>[^-]+)-(?P<major>[0-9]+).(?P<minor>[0-9]+).(?P<qr>[0-9]+)-((?P<flag>.+)-)?(?P<state>[^-]+)'),
 )
 
 def parse_koji_tag(tag):
@@ -31,6 +31,8 @@ def parse_koji_tag(tag):
             'product' : mo.group('product'),
             'major' : mo.group('major'),
             'minor' : mo.group('minor'),
+            'qr' : mo.group('qr'),
+            'flag' : mo.group('flag'),
         }
     return None
 
@@ -115,6 +117,8 @@ class KojiBuild(BaseStructure):
             parsed_tag['product'],
             parsed_tag['major'],
             parsed_tag['minor'],
+            parsed_tag['qr'],
+            parsed_tag['flag'],
         )
 
 @api.events.register('koji')

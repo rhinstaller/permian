@@ -3,11 +3,13 @@ from .base import BaseStructure
 
 @EventStructuresFactory.register('product')
 class ProductStructure(BaseStructure):
-    def __init__(self, settings, name, major, minor):
+    def __init__(self, settings, name, major, minor, other=None, flag=None):
         super().__init__(settings)
         self.name = name
         self.major = major
         self.minor = minor
+        self.other = other
+        self.flag = flag
 
 @EventStructuresFactory.register('other')
 class OtherStructure(BaseStructure):

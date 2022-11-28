@@ -171,6 +171,8 @@ class ComposeStructure(BaseStructure):
             self.product,
             self.major,
             self.minor,
+            self.qr,
+            None, # no support for product flag yet
         )
 
     def to_bootIso(self):

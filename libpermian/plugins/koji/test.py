@@ -204,3 +204,39 @@ class TestKojiEventStructure(unittest.TestCase):
             call(entrypoint)
         ])
         self.assertEqual(requests_get.call_count, 3)
+
+    def test_convert_product_base(self, tag):
+        expected_mapping = {
+            'foo-1.2.3-bar' : {
+                'name' : 'foo',
+                'major' : '1',
+                'minor' : '2',
+                'other' : '3',
+                'flag' : None,
+            },
+            'Woody-0.4.2-damaged-lost' : {
+                'name' : 'Woody',
+                'major' : '0',
+                'minor' : '4',
+                'other' : '2',
+                'flag' : 'damaged',
+            },
+            'acme-1956.5.5-Gee-Whiz-z-z-z-z-z-z' : {
+                'name' : 'acme',
+                'major' : '1956',
+                'minor' : '5',
+                'other' : '5',
+                'flag' : 'Gee-Whiz-z-z-z-z-z',
+            },
+        }
+        for tag, expected_product_attrs in expected_mapping.items():
+            with self.subTest(tag=tag):
+                koji_build = KojiBuild(
+                    self.settings,
+                    self.nvr, build_id=self.build_id,
+                    task_id=self.task_id, package_name=self.package_name,
+                    new_tag=tag,
+                )
+                product = koji_build.to_product()
+                for attr, expected_value in expected_product_attrs.items():
+                    self.assertEqual(getattr(product, attr), expected_value)
