@@ -8,6 +8,7 @@ import logging
 import threading
 import urllib.request
 import urllib.error
+import urllib.parse
 
 from libpermian.plugins import api
 from libpermian.result import Result
@@ -279,6 +280,7 @@ class AnacondaWebUIWorkflow(IsolatedWorkflow):
                '--machine', f'{self.vm_ip}:{self.port_ssh}']
         
         self.log('Running: ' + ' '.join(cmd))
+
         if self.test_repo_name:
             # Test in separate repo
             test_env = {'WEBUI_TEST_DIR': os.path.abspath(os.path.join(self.webui_dir, 'test'))} # tells the test where is anaconda repo
@@ -404,6 +406,7 @@ class AnacondaWebUIWorkflow(IsolatedWorkflow):
         startup_timeout = self.webui_startup_timeout*60 + time.time()
         webui_url = f'http://{self.vm_ip}:{self.port_webui}{self.webui_location}'
         LOGGER.debug(f'Expexted WebUI URL: {webui_url}')
+
         while True:
             if startup_timeout < time.time():
                 raise AnacondaWebUISetupError('WebUI Connection refused, timeout')
@@ -460,18 +463,26 @@ class AnacondaWebUIWorkflow(IsolatedWorkflow):
         """ Clones repositories common to all Anaconda WebUI tests """
         self.log(f'Clonning common repositories')
         bots_dir = os.path.join(self.webui_dir, 'bots')
+        cockpit_common_dir = os.path.join(self.anaconda_dir, 'ui/webui/test/common')
+        parsed_anaconda_url = urllib.parse.urlparse(self.git_anaconda_repo)
 
-        # clone anaconda
-        self._clone_repo(self.git_anaconda_repo, self.git_anaconda_branch, self.anaconda_dir)
+        if parsed_anaconda_url.scheme == 'file':
+            # Create copy of anaconda repo
+            shutil.copytree(parsed_anaconda_url.path, self.anaconda_dir, symlinks=True, ignore_dangling_symlinks=True)
+        else:
+            # clone anaconda
+            self._clone_repo(self.git_anaconda_repo, self.git_anaconda_branch, self.anaconda_dir)
 
-        with tempfile.TemporaryDirectory() as temp_dir:
-            # clone cockpit/test/common
-            self._clone_repo(self.git_cockpit_repo, self.git_cockpit_branch, temp_dir)
-            shutil.move(os.path.join(temp_dir, 'test/common'),
-                        os.path.join(self.anaconda_dir, 'ui/webui/test/common'))
+        if not os.path.exists(cockpit_common_dir):
+            with tempfile.TemporaryDirectory() as temp_dir:
+                # clone cockpit/test/common
+                self._clone_repo(self.git_cockpit_repo, self.git_cockpit_branch, temp_dir)
+                shutil.move(os.path.join(temp_dir, 'test/common'),
+                            cockpit_common_dir)
 
-        # clone bots
-        self._clone_repo(self.git_bots_repo, self.git_bots_branch, bots_dir)
+        if not os.path.exists(bots_dir):
+            # clone bots
+            self._clone_repo(self.git_bots_repo, self.git_bots_branch, bots_dir)
 
     def _get_npm_dependecies(self):
         """ Get node.js dependecies
