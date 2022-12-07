@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, ANY
 
 from libpermian.events.base import Event
 from libpermian.settings import Settings
@@ -89,7 +89,7 @@ class TestAnacondaWebUIWorkflow(unittest.TestCase):
         self.workflow._wait_for_webui()
 
         mocked_sleep.assert_called_once_with(10)
-        mocked_urlopen.assert_called_with('http://192.168.122.42:8000/webui')
+        mocked_urlopen.assert_called_with('http://192.168.122.42:8000/webui', context=ANY)
 
     @patch('subprocess.run')
     def test_execute(self, mocked_run):

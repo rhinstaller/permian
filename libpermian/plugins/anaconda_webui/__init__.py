@@ -6,6 +6,7 @@ import json
 import time
 import logging
 import threading
+import ssl
 import urllib.request
 import urllib.error
 import urllib.parse
@@ -170,6 +171,7 @@ class AnacondaWebUIWorkflow(IsolatedWorkflow):
         self.last_log = ''
         self.use_container = self.settings.getboolean('AnacondaWebUI', 'use_container')
         self.architecture = self.crc.configuration.get('architecture')
+        self.webui_ssl_verify = self.settings.getboolean('AnacondaWebUI', 'webui_ssl_verify')
 
         self.git_anaconda_repo = self.settings.get('AnacondaWebUI', 'anaconda_repo')
         self.git_anaconda_branch = self.crc.configuration['branch']
@@ -235,7 +237,7 @@ class AnacondaWebUIWorkflow(IsolatedWorkflow):
             if self.git_anaconda_branch not in self.temp_dirs.keys():
                 self.temp_dirs[self.git_anaconda_branch] = tempfile.TemporaryDirectory(dir='/var/tmp/', prefix="pipeline_awebui_")
                 clone_common = True
-        
+
             self.temp_dir = self.temp_dirs[self.git_anaconda_branch].name
             self.anaconda_dir = os.path.join(self.temp_dir, 'anaconda')
             self.webui_dir = os.path.join(self.anaconda_dir, 'ui/webui')
@@ -407,6 +409,11 @@ class AnacondaWebUIWorkflow(IsolatedWorkflow):
         webui_url = f'http://{self.vm_ip}:{self.port_webui}{self.webui_location}'
         LOGGER.debug(f'Expexted WebUI URL: {webui_url}')
 
+        ssl_context = ssl.create_default_context()
+        if not self.webui_ssl_verify:
+            ssl_context.check_hostname=False
+            ssl_context.verify_mode=ssl.CERT_NONE
+
         while True:
             if startup_timeout < time.time():
                 raise AnacondaWebUISetupError('WebUI Connection refused, timeout')
@@ -414,7 +421,7 @@ class AnacondaWebUIWorkflow(IsolatedWorkflow):
                 break
             time.sleep(10)
             try:
-                urllib.request.urlopen(webui_url)
+                urllib.request.urlopen(webui_url, context=ssl_context)
             except urllib.error.URLError as e:
                 if e.reason.errno == 111:
                     # Connection refused - webui not yet started
