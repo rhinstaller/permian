@@ -198,6 +198,8 @@ class AnacondaWebUIWorkflow(IsolatedWorkflow):
         self.additional_repos = automation_data.get('additional_repos')
 
         self.kernel_cmdline = automation_data.get('kernel_cmdline')
+        self.kernel_cmdline_settings_all = self.settings.get('AnacondaWebUIkernelCmdline', 'ALL')
+        self.kernel_cmdline_settings_arch = self.settings.get('AnacondaWebUIkernelCmdline', self.architecture)
 
         self.webui_startup_timeout = automation_data.get(
             'webui_startup_timeout',
@@ -384,6 +386,10 @@ class AnacondaWebUIWorkflow(IsolatedWorkflow):
 
         if self.kernel_cmdline:
             kernel_cmdline += f' {self.kernel_cmdline}'
+        if self.kernel_cmdline_settings_all:
+            kernel_cmdline += f' {self.kernel_cmdline_settings_all}'
+        if self.kernel_cmdline_settings_arch:
+            kernel_cmdline += f' {self.kernel_cmdline_settings_arch}'
 
         # Assemble virt-install command
         cmd = ['virt-install', '--connect', self.hypervisor_host, '--autoconsole', 'text',
