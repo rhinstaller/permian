@@ -172,6 +172,7 @@ class AnacondaWebUIWorkflow(IsolatedWorkflow):
         self.use_container = self.settings.getboolean('AnacondaWebUI', 'use_container')
         self.architecture = self.crc.configuration.get('architecture')
         self.webui_ssl_verify = self.settings.getboolean('AnacondaWebUI', 'webui_ssl_verify')
+        self.debug = self.settings.getboolean('AnacondaWebUI', 'debug')
 
         self.git_anaconda_repo = self.settings.get('AnacondaWebUI', 'anaconda_repo')
         self.git_anaconda_branch = self.crc.configuration['branch']
@@ -316,7 +317,7 @@ class AnacondaWebUIWorkflow(IsolatedWorkflow):
         except Exception as e:
             LOGGER.error(e)
 
-        if not self.dryRun:
+        if not self.dryRun and not self.debug:
             # Kill VM
             self._virsh_call(['destroy', self.vm_name])
             # Remove VM
