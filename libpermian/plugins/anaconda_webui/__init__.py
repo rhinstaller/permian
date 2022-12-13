@@ -309,8 +309,28 @@ class AnacondaWebUIWorkflow(IsolatedWorkflow):
             LOGGER.error(e)
 
         if not self.dryRun and not self.debug:
-            # Kill VM
+            # Kill VM - this should stop virt-install
             self._virsh_call(['destroy', self.vm_name])
+
+            try:
+                # Wait for virt-install to end
+                self.proc_virtinstall.wait(10)
+            except subprocess.TimeoutExpired:
+                # Terminate virt-install if it is still running
+                self.proc_virtinstall.terminate()
+                LOGGER.error('virt-install didn\'t end after virsh destroy')
+                try:
+                    # Wait for virt-install to end
+                    self.proc_virtinstall.wait(10)
+                except subprocess.TimeoutExpired:
+                    # Kill virt-install if it is still running
+                    self.proc_virtinstall.kill()
+                    if self.proc_virtinstall.poll() is None:
+                        LOGGER.error('virt-install kill didn\'t work')
+
+            # Close virt-install log
+            self.virt_install_log.close()
+
             # Remove VM
             self._virsh_call(['undefine', self.vm_name, '--remove-all-storage'], check=True)
         
@@ -366,14 +386,15 @@ class AnacondaWebUIWorkflow(IsolatedWorkflow):
             kernel_cmdline += f' {self.kernel_cmdline}'
 
         # Assemble virt-install command
-        cmd = ['virt-install', '--connect', self.hypervisor_host, '--noautoconsole',
+        cmd = ['virt-install', '--connect', self.hypervisor_host, '--autoconsole', 'text',
             '-n', self.vm_name, '--os-variant', 'rhel-unknown', '--location', location,
             '--memory', '4096', '--vcpus', '2', '--disk', 'size=10',
             '--extra-args', kernel_cmdline]
 
+        self.virt_install_log = self.crc.openLogfile('virt-install', 'wb', True)
+
         LOGGER.info('Running: ' + repr(cmd))
-        process = subprocess.run(cmd ,check=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        self.log(process.stdout.decode())
+        self.proc_virtinstall = subprocess.Popen(cmd, stdout=self.virt_install_log, stderr=subprocess.STDOUT)
 
     def _wait_for_ip(self):
         """ Wait for VM to start and get IP """

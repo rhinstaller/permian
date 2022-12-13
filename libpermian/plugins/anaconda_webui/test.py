@@ -20,7 +20,6 @@ def get_DummyTestCase():
     instance.execution.automation_data = {'script_file': 'file', 'test_case': 'Case'}
     return instance
 
-
 class TestAnacondaWebUIWorkflow(unittest.TestCase):
     @patch('subprocess.check_output')
     @patch('subprocess.check_call')
@@ -52,6 +51,7 @@ class TestAnacondaWebUIWorkflow(unittest.TestCase):
         crc = CaseRunConfiguration(get_DummyTestCase(),
                                    {'branch': 'test_branch', 'architecture': 'aarch64'},
                                    [DummyTestPlan()])
+
         self.workflow = AnacondaWebUIWorkflow(testRuns, [crc], None, None)
         self.workflow.log = MagicMock()
         self.workflow.groupLog = MagicMock()
@@ -61,16 +61,19 @@ class TestAnacondaWebUIWorkflow(unittest.TestCase):
         self.workflow.webui_dir = '/test/temp/workdir/webui'
         self.workflow.container = ExecutionContainer()
 
-    @patch('subprocess.run')
-    def test_start_vm(self, mocked_run):
+    @patch('libpermian.caserunconfiguration.CaseRunConfiguration.openLogfile')
+    @patch('subprocess.Popen')
+    def test_start_vm(self, mocked_popen, mocked_openLogfile):
+        self.workflow.crc.openLogfile.return_value = MagicMock()
         self.workflow._start_vm()
 
-        mocked_run.assert_called_with(['virt-install', '--connect', 'qemu:///123.456.789.0', '--noautoconsole',
+        self.workflow.crc.openLogfile.assert_called_with('virt-install', 'wb', True)
+        mocked_popen.assert_called_with(['virt-install', '--connect', 'qemu:///123.456.789.0', '--autoconsole', 'text',
             '-n', 'test_vm', '--os-variant', 'rhel-unknown', '--location',
             'http://example.com/compose/aarch64/BaseOS/os,kernel=images/pxeboot/vmlinuz,initrd=images/pxeboot/initrd.img',
             '--memory', '4096', '--vcpus', '2', '--disk', 'size=10', '--extra-args',
-            'inst.sshd inst.webui inst.webui.remote inst.stage2=http://example.com/compose/aarch64/BaseOS/os'],
-            check=True, stderr=-2, stdout=-1)
+            'inst.sshd inst.webui inst.webui.remote inst.stage2=http://example.com/compose/aarch64/BaseOS/os inst.geoloc=0'],
+            stderr=-2, stdout=self.workflow.crc.openLogfile.return_value)
 
     @patch('time.sleep')
     @patch('subprocess.run')
@@ -92,8 +95,9 @@ class TestAnacondaWebUIWorkflow(unittest.TestCase):
         mocked_sleep.assert_called_once_with(10)
         mocked_urlopen.assert_called_with('http://192.168.122.42:8000/webui', context=ANY)
 
+    @patch('time.sleep')
     @patch('subprocess.run')
-    def test_execute(self, mocked_run):
+    def test_execute(self, mocked_run, mocked_sleep):
         mocked_run.return_value.returncode = 0
         self.workflow.reportResult = MagicMock()
         self.workflow.vm_ip = '192.168.122.42'
