@@ -58,6 +58,7 @@ class TestAnacondaWebUIWorkflow(unittest.TestCase):
         self.workflow.test_workdir = '/test/temp/workdir'
         self.workflow.temp_dir = '/test/temp'
         self.workflow.vm_name = 'test_vm'
+        self.workflow.webui_dir = '/test/temp/workdir/webui'
         self.workflow.container = ExecutionContainer()
 
     @patch('subprocess.run')
@@ -101,6 +102,7 @@ class TestAnacondaWebUIWorkflow(unittest.TestCase):
         
         mocked_run.assert_called_with(['podman', 'run', '--rm', '-it', '-v',
             '/test/temp:/root/workdir:z', '-w', '/root/workdir/workdir',
+            '-e', 'WEBUI_TEST_DIR=/root/workdir/workdir/webui/test',
             'anaconda-webui', 'file', 'Case', '--browser', '192.168.122.42:8000',
             '--machine', '192.168.122.42:11'], stderr=-2, stdout=-1)
 

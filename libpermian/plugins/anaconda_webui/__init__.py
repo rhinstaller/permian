@@ -284,23 +284,14 @@ class AnacondaWebUIWorkflow(IsolatedWorkflow):
         
         self.log('Running: ' + ' '.join(cmd))
 
-        if self.test_repo_name:
-            # Test in separate repo
-            test_env = {'WEBUI_TEST_DIR': os.path.abspath(os.path.join(self.webui_dir, 'test'))} # tells the test where is anaconda repo
-            if self.use_container:
-                cont_cwd = self.test_workdir.replace(self.temp_dir, '/root/workdir')
-                test_env['WEBUI_TEST_DIR'] = test_env['WEBUI_TEST_DIR'].replace(self.temp_dir, '/root/workdir')
-                process = self.container.exec(cmd, self.temp_dir, env=test_env, cwd=cont_cwd, log_error=False)
-            else:
-                process = subprocess.run(cmd, cwd=self.test_workdir, env=test_env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        test_env = {'WEBUI_TEST_DIR': os.path.abspath(os.path.join(self.webui_dir, 'test'))}
 
+        if self.use_container:
+            cont_cwd = self.test_workdir.replace(self.temp_dir, '/root/workdir')
+            test_env['WEBUI_TEST_DIR'] = test_env['WEBUI_TEST_DIR'].replace(self.temp_dir, '/root/workdir')
+            process = self.container.exec(cmd, self.temp_dir, env=test_env, cwd=cont_cwd, log_error=False)
         else:
-            # Test in anaconda repo
-            if self.use_container:
-                cont_cwd = self.test_workdir.replace(self.temp_dir, '/root/workdir')
-                process = self.container.exec(cmd, self.temp_dir, cwd=cont_cwd, log_error=False)
-            else:
-                process = subprocess.run(cmd, cwd=self.test_workdir, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            process = subprocess.run(cmd, cwd=self.test_workdir, env=test_env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
         self.log(process.stdout.decode(), 'output')
         self.log('Test finished', show=True)
