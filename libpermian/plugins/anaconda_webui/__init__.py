@@ -288,6 +288,7 @@ class AnacondaWebUIWorkflow(IsolatedWorkflow):
 
         test_env = {'WEBUI_TEST_DIR': os.path.abspath(os.path.join(self.webui_dir, 'test'))}
 
+        time.sleep(10) # Workaround, there is a race-condition, where WebUI is accessible but /run/anaconda/bus.address doesn't exist yet
         if self.use_container:
             cont_cwd = self.test_workdir.replace(self.temp_dir, '/root/workdir')
             test_env['WEBUI_TEST_DIR'] = test_env['WEBUI_TEST_DIR'].replace(self.temp_dir, '/root/workdir')
