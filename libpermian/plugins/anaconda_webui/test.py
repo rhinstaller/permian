@@ -71,8 +71,8 @@ class TestAnacondaWebUIWorkflow(unittest.TestCase):
         mocked_popen.assert_called_with(['virt-install', '--connect', 'qemu:///123.456.789.0', '--autoconsole', 'text',
             '-n', 'test_vm', '--os-variant', 'rhel-unknown', '--location',
             'http://example.com/compose/aarch64/BaseOS/os,kernel=images/pxeboot/vmlinuz,initrd=images/pxeboot/initrd.img',
-            '--memory', '4096', '--vcpus', '2', '--disk', 'size=10', '--extra-args',
-            'inst.sshd inst.webui inst.webui.remote inst.stage2=http://example.com/compose/aarch64/BaseOS/os inst.geoloc=0'],
+            '--memory', '4096', '--vcpus', '2', '--disk', 'size=10', '--serial', 'pty', '--extra-args',
+            'inst.sshd inst.webui inst.webui.remote inst.graphical console=ttyS0 inst.stage2=http://example.com/compose/aarch64/BaseOS/os inst.geoloc=0'],
             stderr=-2, stdout=self.workflow.crc.openLogfile.return_value)
 
     @patch('time.sleep')

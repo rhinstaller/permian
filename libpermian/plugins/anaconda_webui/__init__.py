@@ -380,7 +380,7 @@ class AnacondaWebUIWorkflow(IsolatedWorkflow):
             location = os_url
 
         # Construct kernel cmdline for --extra-args
-        kernel_cmdline = f'inst.sshd inst.webui inst.webui.remote inst.stage2={os_url}'
+        kernel_cmdline = f'inst.sshd inst.webui inst.webui.remote inst.graphical console=ttyS0 inst.stage2={os_url}'
         if self.additional_repos:
             for repo in self.additional_repos:
                 kernel_cmdline += f' inst.addrepo={repo},{self.installation_source.repos[repo][self.architecture]["os"]}'
@@ -395,7 +395,7 @@ class AnacondaWebUIWorkflow(IsolatedWorkflow):
         # Assemble virt-install command
         cmd = ['virt-install', '--connect', self.hypervisor_host, '--autoconsole', 'text',
             '-n', self.vm_name, '--os-variant', 'rhel-unknown', '--location', location,
-            '--memory', '4096', '--vcpus', '2', '--disk', 'size=10',
+            '--memory', '4096', '--vcpus', '2', '--disk', 'size=10', '--serial', 'pty',
             '--extra-args', kernel_cmdline]
 
         self.virt_install_log = self.crc.openLogfile('virt-install', 'wb', True)
