@@ -436,6 +436,7 @@ class AnacondaWebUIWorkflow(IsolatedWorkflow):
 
         while True:
             if startup_timeout < time.time():
+                self._take_vm_screenshot('screenshot_webui_not_accessible.ppm')
                 raise AnacondaWebUISetupError('WebUI Connection refused, timeout')
             if self.canceled:
                 break
@@ -447,9 +448,20 @@ class AnacondaWebUIWorkflow(IsolatedWorkflow):
                     # Connection refused - webui not yet started
                     continue
                 else:
+                    self._take_vm_screenshot('screenshot_webui_not_accessible.ppm')
                     raise e
             else:
                 break
+
+    def _take_vm_screenshot(self, name):
+        """ Creates screenshot of VMs screen
+
+        :param name: screenshot filename
+        :type name: str
+        """
+        with tempfile.NamedTemporaryFile() as screenshot_tempfile:
+            self._virsh_call(['screenshot', self.vm_name, screenshot_tempfile.name])
+            self.addLog(name, screenshot_tempfile.name, copy_file=True)
 
     def _virsh_call(self, args, check=False):
         """ Runs virsh with specified arguments
