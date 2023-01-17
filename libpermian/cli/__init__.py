@@ -11,6 +11,7 @@ CliFactory class.
 
 import sys
 import os
+import pty
 import logging
 
 from .. import plugins
@@ -28,6 +29,12 @@ def main(*raw_args):
     Custom CLI arguments can be optionally provided as \*args. If those are not
     provided sys.argv content is used as CLI arguments.
     """
+    if not os.isatty(0):
+        # Set pseudo-terminal as fd 0 (stdin), this breaks input into pipeline but
+        # workarounds issues when running subprocess that requires interactive console
+        _, pty_slave = pty.openpty()
+        os.dup2(pty_slave, 0)
+
     plugins.load()
     if not raw_args:
         raw_args = sys.argv
