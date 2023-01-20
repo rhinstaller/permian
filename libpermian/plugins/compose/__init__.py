@@ -31,7 +31,7 @@ class ComposeEvent(Event):
 
 @api.events.register_structure('compose')
 class ComposeStructure(BaseStructure):
-    id_regex = re.compile(r'(?P<product>\w+)-(?P<version>(?P<major>\d+)(\.(?P<minor>\d+))?(\.(?P<qr>\d))?)(-(?P<parent>\w+)-\d)?-(?P<date>\d+)(\.(?P<flag>.))?\.(?P<spin>\d+)')
+    id_regex = re.compile(r'(?P<product>\w+)-(?P<version>(?P<major>\d+)(\.(?P<minor>\d+))?(\.(?P<qr>\d))?)(-updates)?(-(?P<parent>\w+)-\d)?-(?P<date>\d+)(\.(?P<flag>.))?\.(?P<spin>\d+)')
 
     def __init__(self, settings, id, product=None, version=None, major=None, minor=None, qr=None, date=None, respin=None, location=None, location_http=None, compose_type=None, nightly=None, development=None, label=None, prerelease=None, tags=None, new_tag=None, layered=None, parent_product=None, parent_version=None, available_in=None):
         super().__init__(settings)

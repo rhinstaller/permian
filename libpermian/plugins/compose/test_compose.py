@@ -101,6 +101,40 @@ class TestEventCompose(unittest.TestCase):
         self.assertTrue(event.compose.layered)
         self.assertEqual(event.compose.location, 'http://example.com/here/Supp-9.2.1-RHEL-8-20200811.n.5')
 
+    def test_updates_idonly(self):
+        event = EventFactory.make(self.settings, CliFactory.parse('compose', ['RHEL-8.3.0-updates-20200701.t.4'])[1])
+        self.assertEqual(event.compose.id, 'RHEL-8.3.0-updates-20200701.t.4')
+        self.assertEqual(event.compose.version, '8.3.0')
+        self.assertEqual(event.compose.major, '8')
+        self.assertEqual(event.compose.minor, '3')
+        self.assertEqual(event.compose.qr, '0')
+        self.assertEqual(event.compose.spin, '4')
+        self.assertEqual(event.compose.date, '20200701')
+        self.assertEqual(event.compose.product, 'RHEL')
+        self.assertIsNone(event.compose.parent_product)
+        self.assertIsNone(event.compose.parent_version)
+        self.assertFalse(event.compose.nightly)
+        self.assertTrue(event.compose.prerelease)
+        self.assertFalse(event.compose.layered)
+        self.assertEqual(event.compose.location, 'http://example.com/here/RHEL-8.3.0-updates-20200701.t.4')
+
+    def test_supp_updates_idonly(self):
+        event = EventFactory.make(self.settings, CliFactory.parse('compose', ['Supp-9.2.1-updates-RHEL-8-20200811.5'])[1])
+        self.assertEqual(event.compose.id, 'Supp-9.2.1-updates-RHEL-8-20200811.5')
+        self.assertEqual(event.compose.version, '9.2.1')
+        self.assertEqual(event.compose.major, '9')
+        self.assertEqual(event.compose.minor, '2')
+        self.assertEqual(event.compose.qr, '1')
+        self.assertEqual(event.compose.spin, '5')
+        self.assertEqual(event.compose.date, '20200811')
+        self.assertEqual(event.compose.product, 'Supp')
+        self.assertEqual(event.compose.parent_product, 'RHEL')
+        self.assertEqual(event.compose.parent_version, '9.2.1')
+        self.assertFalse(event.compose.nightly)
+        self.assertTrue(event.compose.prerelease)
+        self.assertTrue(event.compose.layered)
+        self.assertEqual(event.compose.location, 'http://example.com/here/Supp-9.2.1-updates-RHEL-8-20200811.5')
+
     def test_rhel_overrides(self):
         event = EventFactory.make(self.settings,
                                   CliFactory.parse('compose', ['RHEL-8.3.0-20200701.2',
