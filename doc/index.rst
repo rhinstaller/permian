@@ -6,6 +6,8 @@
 Permian documentation
 ==========================
 
+:ref:`Quick start<Quick start>`, learn what is Permian and how to run it for the first time.
+
 Usage
 =====
 
@@ -13,10 +15,11 @@ Usage
    :maxdepth: 2
    :caption: End user information and how-to's:
 
-   usage/settings
-   usage/testplan-repo
-   usage/webui
+   quick_start
    usage/usage
+   usage/settings
+   usage/test-library
+   usage/webui
    usage/troubleshooting
 
 Development
