@@ -22,6 +22,12 @@ Usage
    usage/webui
    usage/troubleshooting
 
+.. toctree::
+   :maxdepth: 2
+   :caption: Workflows:
+
+   workflows/anaconda-webui
+
 Development
 ===========
 
