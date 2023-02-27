@@ -3,7 +3,9 @@ import re
 import json
 import xmlrpc.client
 import productmd
-import requests
+import urllib.request
+import urllib.error
+import logging
 import time
 import datetime
 
@@ -17,10 +19,15 @@ from libpermian.plugins.compose import ComposeStructure
 from libpermian.plugins.compose.exceptions import ComposeNotAvailable
 from libpermian.plugins.beaker import BeakerCompose
 
+
+LOGGER = logging.getLogger(__name__)
+
+
 TAG_REGEXPS = (
     # product-1.2.3-state
     re.compile('(?P<product>[^-]+)-(?P<major>[0-9]+).(?P<minor>[0-9]+).(?P<qr>[0-9]+)-((?P<flag>.+)-)?(?P<state>[^-]+)'),
 )
+
 
 def parse_koji_tag(tag):
     for tag_regexp in TAG_REGEXPS:
@@ -88,18 +95,22 @@ class KojiBuild(BaseStructure):
         wait_until = None if timeout <= 0 else datetime.datetime.now() + datetime.timedelta(seconds=timeout)
         entrypoint = f'{self.composes_baseurl}/{self.task_id}-{self.package_name}'
         entrypoint_dir = os.path.dirname(entrypoint)
-        # try to locate the compose until timeout is reached
+
+        LOGGER.debug(f'Trying to locate the compose {entrypoint} until timeout {wait_until}')
         while wait_until is None or datetime.datetime.now() < wait_until:
-            response = requests.get(entrypoint)
-            if response.ok:
-                compose_relpaths = response.text.strip()
-                compose_relpath = compose_relpaths.split('\n')[-1]
-                compose_path = f'{entrypoint_dir}/{compose_relpath}'
-                try:
-                    compose_id = productmd.compose.Compose(compose_path).info.compose.id
-                    return ComposeStructure(self.settings, compose_id, location=compose_path)
-                except RuntimeError: # raised by productmd when failed to load compose metadata
-                    pass
+            try:
+                with urllib.request.urlopen(entrypoint, timeout=5) as response:
+                    compose_relpaths = response.read().decode().strip()
+                    compose_relpath = compose_relpaths.split('\n')[-1]
+                    compose_path = f'{entrypoint_dir}/{compose_relpath}'
+                    try:
+                        compose_id = productmd.compose.Compose(compose_path).info.compose.id
+                        LOGGER.debug(f'Found compose {compose_id} at {compose_path}')
+                        return ComposeStructure(self.settings, compose_id, location=compose_path)
+                    except RuntimeError: # raised by productmd when failed to load compose metadata
+                        pass
+            except urllib.error.URLError as e:
+                LOGGER.debug(e.reason)
             # Don't repeat attempts if timeout was set to 0
             if timeout == 0:
                 break

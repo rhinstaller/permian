@@ -2,6 +2,8 @@ import unittest
 import re
 from unittest.mock import patch, create_autospec, call
 import productmd
+import io
+import urllib.error
 
 from libpermian.events.factory import EventFactory
 from libpermian.cli.factory import CliFactory
@@ -128,9 +130,9 @@ class TestKojiEventStructure(unittest.TestCase):
         koji_proxy_class.assert_not_called()
         koji_proxy_class.return_value.getBuild.assert_not_called()
 
-    @patch('requests.get')
+    @patch('urllib.request.urlopen')
     @patch('productmd.compose.Compose')
-    def test_convert_compose(self, Compose, requests_get, koji_proxy_class):
+    def test_convert_compose(self, Compose, urlopen, koji_proxy_class):
         compose_id = 'FooBar-1.23-123456.t.98'
         compose_relpath = '../some_compose_dir'
         koji_proxy_class.return_value.getBuild.return_value = {
@@ -142,8 +144,7 @@ class TestKojiEventStructure(unittest.TestCase):
             {'name': self.new_tag},
         )
         Compose.return_value.info.compose.id = compose_id
-        requests_get.return_value.ok = True
-        requests_get.return_value.text = compose_relpath
+        urlopen.return_value = io.BytesIO(bytes(f'{compose_relpath}\n', 'utf-8'))
         koji_build = KojiBuild(self.settings, self.nvr)
         compose = koji_build.to_compose()
         self.assertEqual(compose.id, compose_id)
@@ -152,11 +153,11 @@ class TestKojiEventStructure(unittest.TestCase):
             f'{self.composes_baseurl}/{compose_relpath}'
         )
 
-    @patch('requests.get')
+    @patch('urllib.request.urlopen')
     @patch('productmd.compose.Compose')
-    def test_convert_compose_multiple(self, Compose, requests_get, koji_proxy_class):
+    def test_convert_compose_multiple(self, Compose, urlopen, koji_proxy_class):
         compose_id = 'FooBar-1.23-123456.t.98'
-        mocked_compose_relpath = '../some_compose_dir\n../another_compose_dir'
+        mocked_compose_relpath = '../some_compose_dir\n../another_compose_dir\n'
         desired_compose_relpath = '../another_compose_dir'
         koji_proxy_class.return_value.getBuild.return_value = {
             'build_id' : self.build_id,
@@ -167,8 +168,7 @@ class TestKojiEventStructure(unittest.TestCase):
             {'name': self.new_tag},
         )
         Compose.return_value.info.compose.id = compose_id
-        requests_get.return_value.ok = True
-        requests_get.return_value.text = mocked_compose_relpath
+        urlopen.return_value = io.BytesIO(bytes(mocked_compose_relpath, 'utf-8'))
         koji_build = KojiBuild(self.settings, self.nvr)
         compose = koji_build.to_compose()
         self.assertEqual(compose.id, compose_id)
@@ -177,9 +177,9 @@ class TestKojiEventStructure(unittest.TestCase):
             f'{self.composes_baseurl}/{desired_compose_relpath}'
         )
 
-    @patch('requests.get')
+    @patch('urllib.request.urlopen')
     @patch('productmd.compose.Compose')
-    def test_convert_compose_fail(self, Compose, requests_get, koji_proxy_class):
+    def test_convert_compose_fail(self, Compose, urlopen, koji_proxy_class):
         compose_id = 'FooBar-1.23-123456.t.98'
         compose_relpath = '../some_compose_dir'
         koji_proxy_class.return_value.getBuild.return_value = {
@@ -190,7 +190,7 @@ class TestKojiEventStructure(unittest.TestCase):
         koji_proxy_class.return_value.listTags.return_value = (
             {'name': self.new_tag},
         )
-        requests_get.return_value.ok = False
+        urlopen.side_effect = urllib.error.URLError('reason')
         koji_build = KojiBuild(self.settings, self.nvr)
         with self.assertRaises(ComposeNotAvailable):
             compose = koji_build.to_compose()
@@ -198,12 +198,12 @@ class TestKojiEventStructure(unittest.TestCase):
         # testcompose_timeout=3
         # testcompose_retry_interval=1.2
         # There should be 3 attempts (but not more) before the timeout
-        requests_get.assert_has_calls([
-            call(entrypoint),
-            call(entrypoint),
-            call(entrypoint)
+        urlopen.assert_has_calls([
+            call(entrypoint, timeout=5),
+            call(entrypoint, timeout=5),
+            call(entrypoint, timeout=5)
         ])
-        self.assertEqual(requests_get.call_count, 3)
+        self.assertEqual(urlopen.call_count, 3)
 
     def test_convert_product_base(self, tag):
         expected_mapping = {
