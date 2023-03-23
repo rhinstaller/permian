@@ -11,4 +11,4 @@ test.integration:
 doc:
 	make -C doc html
 clean:
-	rm -r *.log *.dump logs xunit-*.xml index.html pipeline_data static || :
+	rm -r *.log *.dump logs local_logs xunit-*.xml index.html pipeline_data static || :
