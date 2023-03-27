@@ -70,7 +70,7 @@ class TestAnacondaWebUIWorkflow(unittest.TestCase):
         self.workflow._start_vm()
 
         self.workflow.crc.openLogfile.assert_called_with('virt-install', 'wb', True)
-        mocked_popen.assert_called_with(['virt-install', '--connect', 'qemu:///123.456.789.0', '--autoconsole', 'text',
+        mocked_popen.assert_called_with(['virt-install', '--connect', 'qemu+ssh://root@qemu:///123.456.789.0/system', '--autoconsole', 'text',
             '-n', 'test_vm', '--os-variant', 'rhel-unknown', '--location',
             'http://example.com/compose/aarch64/BaseOS/os,kernel=images/pxeboot/vmlinuz,initrd=images/pxeboot/initrd.img',
             '--memory', '4096', '--vcpus', '2', '--disk', 'size=10', '--serial', 'pty', '--extra-args',
@@ -78,19 +78,9 @@ class TestAnacondaWebUIWorkflow(unittest.TestCase):
             stderr=-2, stdout=self.workflow.crc.openLogfile.return_value)
 
     @patch('time.sleep')
-    @patch('subprocess.run')
-    def test_wait_for_ip(self, mocked_run, mocked_sleep):
-        mocked_run.return_value.stdout = b' vnet31     aa:bb:cc:dd:ee:ff    ipv4         192.168.122.42/24'
-
-        self.workflow._wait_for_ip()
-
-        self.assertEqual(self.workflow.vm_ip, '192.168.122.42')
-        mocked_run.assert_called_with(['virsh', '-q', '--connect', 'qemu:///123.456.789.0', 'domifaddr', 'test_vm'], check=False, stdout=-1)
-
-    @patch('time.sleep')
     @patch('urllib.request.urlopen')
     def test_wait_for_webui(self, mocked_urlopen, mocked_sleep):
-        self.workflow.vm_ip = '192.168.122.42'
+        self.workflow.test_system_ip = '192.168.122.42'
 
         self.workflow._wait_for_webui()
 
@@ -105,7 +95,7 @@ class TestAnacondaWebUIWorkflow(unittest.TestCase):
         mocked_run.return_value.returncode = 0
         list_dir.return_value = []
         self.workflow.reportResult = MagicMock()
-        self.workflow.vm_ip = '192.168.122.42'
+        self.workflow.test_system_ip = '192.168.122.42'
 
         self.workflow.execute()
         

@@ -19,6 +19,8 @@ from libpermian.events.structures.base import BaseStructure
 from libpermian.plugins.compose import ComposeStructure
 from libpermian.exceptions import StructureConversionError
 from libpermian.plugins.anaconda_webui.execution_container import ExecutionContainer
+from libpermian.plugins.anaconda_webui.hypervisor import Hypervisor
+
 from flask import url_for
 import libpermian.webui.builtin
 
@@ -137,7 +139,7 @@ class AnacondaWebUIWorkflow(IsolatedWorkflow):
         self.setup_lock = setup_lock
         self.vm_name = f'anaconda-webui-{hash(self.crc)}'
         self.re_browser_snapshot = re.compile('\d+-snapshot-.*\.(png|html)')
-        self.vm_ip = None
+        self.test_system_ip = None
         self.last_log = ''
         self.use_container = self.settings.getboolean('AnacondaWebUI', 'use_container')
         self.architecture = self.crc.configuration.get('architecture')
@@ -178,13 +180,13 @@ class AnacondaWebUIWorkflow(IsolatedWorkflow):
         )
 
         try:
-            self.hypervisor_host = self.settings.get('VMHypervisors', self.architecture)
+            self.hypervisor = Hypervisor(self.settings.get('VMHypervisors', self.architecture))
         except KeyError:
-            self.hypervisor_host = None
+            self.hypervisor = None
 
     def setup(self):
         # Check if we have hypervisor for specified architecture
-        if not self.hypervisor_host:
+        if not self.hypervisor:
             raise AnacondaWebUISetupError('No hypervisor for {self.architecture} in settings')
 
         clone_common = False
@@ -239,8 +241,15 @@ class AnacondaWebUIWorkflow(IsolatedWorkflow):
         if not self.dryRun:
             self._start_vm()
 
+            self.log('Waiting for IP', show=True)
+            vm_ip = self.hypervisor.wait_for_ip(self.vm_name)
+            if self.hypervisor.remote:
+                self.test_system_ip = self.hypervisor.host
+            else:
+                self.test_system_ip = vm_ip
+            # Configure port pre-routing on remote hypervisor
+            self.port_ssh, self.port_webui = self.hypervisor.configure_prerouting(vm_ip, [self.port_ssh, self.port_webui])
             # Wait for WebUI to start
-            self._wait_for_ip()
             self._wait_for_webui()
 
     def dry_execute(self):
@@ -257,8 +266,8 @@ class AnacondaWebUIWorkflow(IsolatedWorkflow):
         self.reportResult(Result('running', None, False))
 
         cmd = [self.test_script_file, self.test_case_name,
-               '--browser', f'{self.vm_ip}:{self.port_webui}',
-               '--machine', f'{self.vm_ip}:{self.port_ssh}']
+               '--browser', f'{self.test_system_ip}:{self.port_webui}',
+               '--machine', f'{self.test_system_ip}:{self.port_ssh}']
         
         self.log('Running: ' + ' '.join(cmd))
 
@@ -311,7 +320,7 @@ class AnacondaWebUIWorkflow(IsolatedWorkflow):
 
         if not self.dryRun and not self.debug:
             # Kill VM - this should stop virt-install
-            self._virsh_call(['destroy', self.vm_name])
+            self.hypervisor.stop_vm(self.vm_name)
 
             try:
                 # Wait for virt-install to end
@@ -335,7 +344,7 @@ class AnacondaWebUIWorkflow(IsolatedWorkflow):
             self.virt_install_log.close()
 
             # Remove VM
-            self._virsh_call(['undefine', self.vm_name, '--remove-all-storage'], check=True)
+            self.hypervisor.remove_vm(self.vm_name)
         
         self.vm_semaphore.release()
 
@@ -353,7 +362,7 @@ class AnacondaWebUIWorkflow(IsolatedWorkflow):
     def terminate(self):
         if not self.dryRun:
             # Kill VM
-            self._virsh_call(['destroy', self.vm_name])
+            self.hypervisor.stop_vm(self.vm_name)
 
     def log(self, message, name='workflow', show=False):
         if name == 'workflow' and show:
@@ -395,7 +404,7 @@ class AnacondaWebUIWorkflow(IsolatedWorkflow):
             kernel_cmdline += f' {self.kernel_cmdline_settings_arch}'
 
         # Assemble virt-install command
-        cmd = ['virt-install', '--connect', self.hypervisor_host, '--autoconsole', 'text',
+        cmd = ['virt-install', '--connect', self.hypervisor.qemu_host, '--autoconsole', 'text',
             '-n', self.vm_name, '--os-variant', 'rhel-unknown', '--location', location,
             '--memory', '4096', '--vcpus', '2', '--disk', 'size=10', '--serial', 'pty',
             '--extra-args', kernel_cmdline]
@@ -405,20 +414,6 @@ class AnacondaWebUIWorkflow(IsolatedWorkflow):
         LOGGER.info('Running: ' + repr(cmd))
         self.proc_virtinstall = subprocess.Popen(cmd, stdout=self.virt_install_log, stderr=subprocess.STDOUT)
 
-    def _wait_for_ip(self):
-        """ Wait for VM to start and get IP """
-        self.log('Waiting for IP', show=True)
-        for _ in range(12):
-            time.sleep(20)
-            output = self._virsh_call(['domifaddr', self.vm_name])
-            if output:
-                self.vm_ip = output.split()[3].split('/')[0]
-                break
-            if self.canceled:
-                break
-        else:
-            AnacondaWebUISetupError('Timeout, VM still doesn\'t have IP')
-
     def _wait_for_webui(self):
         """ Wait for WebUI to be accessible
 
@@ -427,7 +422,7 @@ class AnacondaWebUIWorkflow(IsolatedWorkflow):
         """
         self.log('Waiting for WebUI', show=True)
         startup_timeout = self.webui_startup_timeout*60 + time.time()
-        webui_url = f'http://{self.vm_ip}:{self.port_webui}{self.webui_location}'
+        webui_url = f'http://{self.test_system_ip}:{self.port_webui}{self.webui_location}'
         LOGGER.debug(f'Expexted WebUI URL: {webui_url}')
 
         ssl_context = ssl.create_default_context()
@@ -461,22 +456,8 @@ class AnacondaWebUIWorkflow(IsolatedWorkflow):
         :type name: str
         """
         with tempfile.NamedTemporaryFile() as screenshot_tempfile:
-            self._virsh_call(['screenshot', self.vm_name, screenshot_tempfile.name])
+            self.hypervisor.virsh_call(['screenshot', self.vm_name, screenshot_tempfile.name])
             self.addLog(name, screenshot_tempfile.name, copy_file=True)
-
-    def _virsh_call(self, args, check=False):
-        """ Runs virsh with specified arguments
-
-        :param args: virsh arguments
-        :type args: list
-        :param check: Check if command was successful, defaults to False
-        :type check: bool, optional
-        :return: CompletedProcess
-        :rtype: subprocess.CompletedProcess
-        """
-        cmd = ['virsh', '-q', '--connect', self.hypervisor_host] + args
-        LOGGER.debug('Running: ' + repr(cmd))
-        return subprocess.run(cmd, check=check, stdout=subprocess.PIPE).stdout.decode()
 
     def _clone_repo(self, repo, branch, dir):
         """ Clones git repository
