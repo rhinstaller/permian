@@ -274,7 +274,7 @@ class AnacondaWebUIWorkflow(IsolatedWorkflow):
             process = subprocess.Popen(cmd, cwd=self.test_workdir, env=test_env, stdout=test_output, stderr=subprocess.STDOUT)
 
         # Wait for test to finish
-        test_timeout = time.time() + self.test_timeout
+        test_timeout = time.time() + self.test_timeout * 60
 
         while time.time() < test_timeout:
             try:
