@@ -18,8 +18,11 @@ class Hypervisor():
         self.host = host
 
         self.configured_preroutings = {}
+        self.forwarded_ports = {}
+        self.ssh_process = None
+        self.ssh_control_socket = None
 
-    def wait_for_ip(self, vm_name, attempts=30, wait=10):
+    def wait_for_vm_ip(self, vm_name, attempts=30, wait=10):
         """  Wait for VM to get IP
 
         :param vm_name: VM name
@@ -71,6 +74,46 @@ class Hypervisor():
         """
         proc = subprocess.run(['ssh', '-p', '22', f'root@{self.host}', cmd], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         return proc.stdout.decode().strip()
+
+    def _start_ssh(self):
+        if self.ssh_process:
+            return
+        # start ssh
+
+    def _stop_ssh(self):
+        if self.ssh_process is None:
+            return
+        # kill ssh
+        self.ssh_control_socket = None
+
+    def _forward_port(self, target_ip, target_port):
+        self._start_ssh()
+        try:
+            return self.forwarded_ports[target_port]
+        except KeyError:
+            pass
+        for attempt in range(100):
+            local_port = random.randint(49152, 65535)
+            try:
+                # call ssh -S ctl_path -L $local_port:$target_ip:$target_port
+                pass
+            except:
+                # couldn't use local_port, let's try another one
+                continue
+            self.forwarded_ports[target_port] = local_port
+            return local_port
+
+    def start_forwarding(self, vm_ip, ports):
+        local_ports = []
+        for port in ports:
+            local_ports.append(
+                self._forward_port(self.ssh_control_socket, vm_ip, port)
+            )
+        return local_ports
+
+    def stop_forwarding(self, ports=None):
+        # kill ssh
+        self.forwarded_ports.clear()
 
     def configure_prerouting(self, vm_ip, ports):
         """ Configure preroutings for specified ip and ports
@@ -146,3 +189,6 @@ class Hypervisor():
             return str(sorted(used_ports)[-1]+1)
         except IndexError:
             return START_PORT
+
+    def __del__(self):
+        self.stop_forwarding()
