@@ -9,7 +9,7 @@ RUN yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.n
 RUN yum -y install yum-utils; \
     yum-config-manager --add-repo https://beaker-project.org/yum/beaker-client-RedHatEnterpriseLinux.repo; \
     yum-config-manager --enable beaker-client; \
-    yum -y install python3-bugzilla beaker-client python3-productmd
+    yum -y install python3-bugzilla beaker-client python3-productmd python3-podman
 
 # docs dependencies
 RUN yum-config-manager --enable powertools; \
