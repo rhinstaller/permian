@@ -12,6 +12,7 @@ import errno
 import urllib.request
 import urllib.error
 import urllib.parse
+import libpermian.plugins.anaconda_webui.commands
 
 from libpermian.plugins import api
 from libpermian.result import Result
