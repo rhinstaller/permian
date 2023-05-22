@@ -117,6 +117,7 @@ class Hypervisor():
         :return: CompletedProcess
         :rtype: string
         """
+        LOGGER.info('Waiting for VM to start and get IP. (Failed to get domain errors are expected)')
         for _ in range(attempts):
             time.sleep(wait)
             output = self.virsh_call(['domifaddr', vm_name])
