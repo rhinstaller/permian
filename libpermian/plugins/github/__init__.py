@@ -71,7 +71,7 @@ class GitHubPullRequestReportSender(BaseReportSender):
                                            tp=self.testplan,
                                            reportsender=self)
 
-        payload = {"name": self.check_name,
+        payload = {"name": "Pull request checks",
                    "status": status,
                    "output": {"title": self.check_name,
                               "summary": self.check_summary,
