@@ -84,7 +84,8 @@ class BeakerCompose(BaseStructure):
         :return: Compose id if relevant RTT_ACCEPTED compose.
         :rtype: str
         """
-        name_part = f'{self.product}-{self.major}.{self.minor}'
+        product = self.product if self.product != 'Gemini' else 'RHEL'
+        name_part = f'{product}-{self.major}.{self.minor}'
         last_name_part = None
         while name_part != last_name_part:
             last_name_part = name_part
@@ -104,7 +105,7 @@ class BeakerCompose(BaseStructure):
     @property
     def family(self):
         "Beaker family name used for this compose."
-        if self.product.upper() == "RHEL":
+        if self.product.upper() in ["RHEL", "GEMINI"]:
             return f"RedHatEnterpriseLinux{self.major}"
         if self.product.upper() == "FEDORA":
             return f"Fedora{self.major}"
