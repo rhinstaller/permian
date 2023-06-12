@@ -16,6 +16,7 @@ import libpermian.plugins.anaconda_webui.commands
 
 from libpermian.plugins import api
 from libpermian.result import Result
+from libpermian.exceptions import ResourceNotAvailable
 from libpermian.workflows.isolated import IsolatedWorkflow
 from libpermian.events.structures.base import BaseStructure
 from libpermian.plugins.compose import ComposeStructure
@@ -137,6 +138,10 @@ class AnacondaWebUIWorkflow(IsolatedWorkflow):
     def __init__(self, testRuns, crcList, setup_lock, vm_semaphore):
         super().__init__(testRuns, crcList)
         self.installation_source = self.event.InstallationSource
+        self.boot_iso_structure = self.event.bootIso
+        self.boot_iso_path = None
+        if self.installation_source is None and self.boot_iso_structure is None:
+            raise ResourceNotAvailable('anaconda-webui needs bootIso or InstallationSource structure')
         self.vm_semaphore = vm_semaphore
         self.setup_lock = setup_lock
         self.vm_name = f'anaconda-webui-{hash(self.crc)}'
@@ -219,6 +224,7 @@ class AnacondaWebUIWorkflow(IsolatedWorkflow):
                 clone_common = True
 
             self.temp_dir = self.temp_dirs[self.git_anaconda_branch].name
+            os.chmod(self.temp_dir, 755)
             self.anaconda_dir = os.path.join(self.temp_dir, 'anaconda')
             self.webui_dir = os.path.join(self.anaconda_dir, 'ui/webui')
 
@@ -231,6 +237,10 @@ class AnacondaWebUIWorkflow(IsolatedWorkflow):
                 self._get_npm_dependecies()
 
             self.hypervisor.setup()
+
+            # Prepare boot iso if installation_source is not defined
+            if self.installation_source is None:
+                self._set_boot_iso_path()
 
         self.test_workdir = self.anaconda_dir # CWD where the test is going to run
         if self.test_repo_name:
@@ -391,20 +401,57 @@ class AnacondaWebUIWorkflow(IsolatedWorkflow):
     def canceled(self):
         return self.crc.result.state == 'canceled'
 
+    def _set_boot_iso_path(self):
+        """ Sets path to boot iso for virt-install command """
+        if self.hypervisor.remote:
+            # TODO: Add support for boot iso with remote hypervisors.
+            # Proposed solution: add functionality to the Hypervisor class to copy or download the boot iso to the hypervisor
+            raise ResourceNotAvailable('anaconda-webui needs InstallationSource structure when the VM hypervisor is remote')
+
+        self.boot_iso_path = os.path.join(self.temp_dir, f'boot-{self.architecture}.iso')
+        if os.path.exists(self.boot_iso_path):
+            LOGGER.info(f'Using existing iso: {self.boot_iso_path}')
+            return
+
+        if self.boot_iso_structure[self.architecture].startswith(('http://', 'https://')):
+            # Download boot iso
+            LOGGER.info(f'Downloading {self.boot_iso_structure[self.architecture]}')
+            self.boot_iso_path, _ = urllib.request.urlretrieve(
+                self.boot_iso_structure[self.architecture],
+                self.boot_iso_path
+            )
+
+        else:
+            if self.boot_iso_structure[self.architecture].startswith('file://'):
+                # Local boot iso, file:// url
+                local_iso_path = self.boot_iso_structure[self.architecture][7:]
+            else:
+                # Local boot iso
+                local_iso_path = self.boot_iso_structure[self.architecture]
+
+            LOGGER.info(f'Fetching {self.boot_iso_structure[self.architecture]}')
+            shutil.copyfile(local_iso_path, self.boot_iso_path)
+
     def _start_vm(self):
         """ Prepare virt-install command and start VM """
         self.log('Starting VM', show=True)
 
-        # Get compose location
-        os_url = self.installation_source.base_repo[self.architecture]['os']
-        if (self.installation_source.kernel_path(self.architecture) and
-            self.installation_source.initrd_path(self.architecture)):
-            location = f'{os_url},kernel={self.installation_source.kernel_path(self.architecture)},initrd={self.installation_source.initrd_path(self.architecture)}'
-        else:
-            location = os_url
-
         # Construct kernel cmdline for --extra-args
-        kernel_cmdline = f'inst.sshd inst.webui inst.webui.remote inst.graphical console=ttyS0 inst.stage2={os_url}'
+        kernel_cmdline = f'inst.sshd inst.webui inst.webui.remote inst.graphical console=ttyS0'
+
+        # Get installation source location
+        if self.boot_iso_path is None:
+            os_url = self.installation_source.base_repo[self.architecture]['os']
+            if (self.installation_source.kernel_path(self.architecture) and
+                self.installation_source.initrd_path(self.architecture)):
+                location = f'{os_url},kernel={self.installation_source.kernel_path(self.architecture)},initrd={self.installation_source.initrd_path(self.architecture)}'
+            else:
+                location = os_url
+
+            kernel_cmdline += f' inst.stage2={os_url}'
+        else:
+            location = self.boot_iso_path
+
         if self.additional_repos:
             for repo in self.additional_repos:
                 kernel_cmdline += f' inst.addrepo={repo},{self.installation_source.repos[repo][self.architecture]["os"]}'

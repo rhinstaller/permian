@@ -8,6 +8,7 @@ from libpermian.testruns import TestRuns
 from libpermian.plugins.anaconda_webui import AnacondaWebUIWorkflow, ExecutionContainer
 from libpermian.caserunconfiguration import CaseRunConfiguration
 from libpermian.result import Result
+from libpermian.exceptions import ResourceNotAvailable
 
 
 class DummyTestPlan():
@@ -80,6 +81,21 @@ class TestAnacondaWebUIWorkflow(unittest.TestCase):
             'inst.sshd inst.webui inst.webui.remote inst.graphical console=ttyS0 inst.stage2=http://example.com/compose/aarch64/BaseOS/os inst.geoloc=0'],
             stderr=-2, stdout=self.workflow.crc.openLogfile.return_value)
 
+    @patch('libpermian.caserunconfiguration.CaseRunConfiguration.openLogfile')
+    @patch('subprocess.Popen')
+    def test_start_vm_bootiso(self, mocked_popen, mocked_openLogfile):
+        self.workflow.crc.openLogfile.return_value = MagicMock()
+        self.workflow.boot_iso_path = '/test/boot.iso'
+        self.workflow._start_vm()
+
+        self.workflow.crc.openLogfile.assert_called_with('virt-install', 'wb', True)
+        mocked_popen.assert_called_with(['virt-install', '--connect', 'qemu+ssh://123.456.789.0/system', '--autoconsole', 'text',
+            '-n', 'test_vm', '--os-variant', 'rhel-unknown', '--location',
+            '/test/boot.iso',
+            '--memory', '4096', '--vcpus', '2', '--disk', 'size=10', '--serial', 'pty', '--extra-args',
+            'inst.sshd inst.webui inst.webui.remote inst.graphical console=ttyS0 inst.geoloc=0'],
+            stderr=-2, stdout=self.workflow.crc.openLogfile.return_value)
+
     @patch('time.sleep')
     @patch('urllib.request.urlopen')
     def test_wait_for_webui(self, mocked_urlopen, mocked_sleep):
@@ -109,3 +125,46 @@ class TestAnacondaWebUIWorkflow(unittest.TestCase):
             '--machine', '192.168.122.42:11'], stderr=-2, stdout=ANY)
 
         self.workflow.reportResult.assert_called_with(Result('complete', 'PASS', True))
+
+
+class Test_get_boot_iso_path(unittest.TestCase):
+    def setUp(self):
+        settings = Settings({}, {}, [])
+        event = Event(settings, 'test', InstallationSource={"base_repo_id": "BaseOS",
+            "repos": {"BaseOS": {"x86_64": {"os": "http://example.com/compose/x86_64/BaseOS/os"}}}})
+        testRuns = TestRuns(MagicMock(), event, settings)
+        crc = CaseRunConfiguration(get_DummyTestCase(),
+                                   {'branch': 'test_branch', 'architecture': 'x86_64'},
+                                   [DummyTestPlan()])
+        self.workflow = AnacondaWebUIWorkflow(testRuns, [crc], None, None)
+
+    def test_remote_hv(self):
+        self.workflow.hypervisor.remote = True
+        self.assertRaises(ResourceNotAvailable, self.workflow._set_boot_iso_path)
+
+    @patch('urllib.request.urlretrieve')
+    @patch('os.path.exists')
+    def test_remote_file(self, mocked_exists, mocked_urlretrieve):
+        self.workflow.boot_iso_structure = {"x86_64": 'http://example.com/boot.iso'}
+        self.workflow.temp_dir = '/somepath'
+        mocked_urlretrieve.return_value = ('/somepath/boot-x86_64.iso', None)
+        mocked_exists.return_value = False
+
+        self.workflow._set_boot_iso_path()
+
+        mocked_urlretrieve.assert_called_with('http://example.com/boot.iso', '/somepath/boot-x86_64.iso')
+        self.assertEqual(self.workflow.boot_iso_path, '/somepath/boot-x86_64.iso')
+
+    @patch('urllib.request.urlretrieve')
+    @patch('os.path.exists')
+    @patch('shutil.copyfile')
+    def test_local_file(self, mocked_copy, mocked_exists, mocked_urlretrieve):
+        self.workflow.boot_iso_structure = {"x86_64": 'file:///somepath/boot.iso'}
+        self.workflow.temp_dir = '/otherpath'
+        mocked_exists.return_value = False
+
+        self.workflow._set_boot_iso_path()
+
+        mocked_urlretrieve.assert_not_called()
+        mocked_copy.assert_called_with('/somepath/boot.iso', '/otherpath/boot-x86_64.iso')
+        self.assertEqual(self.workflow.boot_iso_path, '/otherpath/boot-x86_64.iso')
