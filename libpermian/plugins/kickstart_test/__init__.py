@@ -8,9 +8,10 @@ import itertools
 import stat
 
 from libpermian.plugins import api
+from libpermian.plugins.bootiso_structure import BootIsoStructure
 from libpermian.workflows.isolated import GroupedWorkflow
 from libpermian.events.base import Event
-from libpermian.events.structures.builtin import OtherStructure, BaseStructure
+from libpermian.events.structures.builtin import BaseStructure
 from libpermian.result import Result
 from libpermian.exceptions import UnsupportedConfiguration
 
@@ -148,11 +149,6 @@ class KicstartTestBatchCurrentResults():
         except KeyError:
             LOGGER.warning("Found result of unexpected test %s", test)
             return None
-
-
-@api.events.register_structure('bootIso')
-class BootIsoStructure(OtherStructure):
-    pass
 
 
 @api.events.register_structure('kstestParams')
