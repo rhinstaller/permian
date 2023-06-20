@@ -236,8 +236,6 @@ class AnacondaWebUIWorkflow(IsolatedWorkflow):
                 self._clone_common()
                 self._get_npm_dependecies()
 
-            self.hypervisor.setup()
-
             # Prepare boot iso if installation_source is not defined
             if self.installation_source is None:
                 self._set_boot_iso_path()
@@ -503,6 +501,10 @@ class AnacondaWebUIWorkflow(IsolatedWorkflow):
 
             # Race-condition - two VMs are starting at exactly the same time.
             if re.search(r'ERROR\s+internal error: pool \S+ has asynchronous jobs running.', output):
+                return False
+
+            # Race-condition - pool was created by other VM running at the same time
+            if re.search(r'Could not define storage pool: operation failed: pool \S+ already exists', output):
                 return False
 
             self.log('VM didn\'t start with unexpected error')

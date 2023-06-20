@@ -31,14 +31,6 @@ class Hypervisor():
             self.ssh_ctl_file = os.path.join(self.tempdir.name, self.host)
             self._open_connection()
 
-    def setup(self):
-        # Try to create storage pool boot-scratch to avoid issues later, if it exist its ok for this command to fail.
-        self.virsh_call([
-            'pool-create-as', '--name', 'boot-scratch',
-            '--type', 'dir', '--target' ,'/var/lib/libvirt/boot',
-            '--build'
-        ])
-
     def forwarding_cleanup(self):
         self._close_connection()
         self.tempdir.cleanup()
