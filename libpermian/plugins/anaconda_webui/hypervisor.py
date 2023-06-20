@@ -11,6 +11,10 @@ import re
 LOGGER = logging.getLogger(__name__)
 
 
+class VMIPTimeout(Exception):
+    pass
+
+
 class Hypervisor():
     def __init__(self, host):
         self.host = host
@@ -124,7 +128,7 @@ class Hypervisor():
             if output:
                 return output.split()[3].split('/')[0]
         else:
-            raise Exception('Timeout, VM still doesn\'t have IP')
+            raise VMIPTimeout('Timeout, VM still doesn\'t have IP')
 
     def stop_vm(self, vm_name):
         """ Call destroy on specified VM """

@@ -22,7 +22,7 @@ from libpermian.events.structures.base import BaseStructure
 from libpermian.plugins.compose import ComposeStructure
 from libpermian.exceptions import StructureConversionError
 from libpermian.plugins.anaconda_webui.execution_container import ExecutionContainer
-from libpermian.plugins.anaconda_webui.hypervisor import Hypervisor
+from libpermian.plugins.anaconda_webui.hypervisor import Hypervisor, VMIPTimeout
 
 from flask import url_for
 import libpermian.webui.builtin
@@ -254,9 +254,24 @@ class AnacondaWebUIWorkflow(IsolatedWorkflow):
         self.reportResult(Result('started', None, False))
 
         if not self.dryRun:
-            self._start_vm()
-            self.log('Waiting for IP', show=True)
-            vm_ip = self.hypervisor.wait_for_ip(self.vm_name)
+            for _ in range(10):
+                self._start_vm()
+                time.sleep(2)
+                self._check_vm_errors()
+
+                try:
+                    self.log('Waiting for IP', show=True)
+                    vm_ip = self.hypervisor.wait_for_ip(self.vm_name)
+                except VMIPTimeout:
+                    self._check_vm_errors()
+                else:
+                    break # VM has ip
+
+                self.log('Found expected error, restarting.')
+                self.hypervisor.remove_vm(self.vm_name)
+            else:
+                self.log('VM didn\'t start after multiple retries')
+                raise AnacondaWebUISetupError('VM didn\'t start after multiple retries')
 
             if self.hypervisor.remote:
                 # Configure port forwarding
@@ -473,6 +488,27 @@ class AnacondaWebUIWorkflow(IsolatedWorkflow):
 
         LOGGER.info('Running: ' + repr(cmd))
         self.proc_virtinstall = subprocess.Popen(cmd, stdout=self.virt_install_log, stderr=subprocess.STDOUT)
+
+    def _check_vm_errors(self):
+        """ Check if VM is running and if not, check log file for errors
+
+        :raises AnacondaWebUISetupError: VM failed with unexpected error
+        :return: True if VM is running, False if VM failed with expected error (can be restarted)
+        :rtype: bool
+        """
+        if self.proc_virtinstall.poll() is not None:
+            self.virt_install_log.close()
+            with self.crc.openLogfile('virt-install') as logfile:
+                output = logfile.read()
+
+            # Race-condition - two VMs are starting at exactly the same time.
+            if re.search(r'ERROR\s+internal error: pool \S+ has asynchronous jobs running.', output):
+                return False
+
+            self.log('VM didn\'t start with unexpected error')
+            raise AnacondaWebUISetupError('VM didn\'t start with unexpected error')
+
+        return True
 
     def _wait_for_webui(self):
         """ Wait for WebUI to be accessible
