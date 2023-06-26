@@ -145,7 +145,6 @@ class AnacondaWebUIWorkflow(IsolatedWorkflow):
         self.vm_semaphore = vm_semaphore
         self.setup_lock = setup_lock
         self.vm_name = f'anaconda-webui-{hash(self.crc)}'
-        self.re_browser_snapshot = re.compile('\d+-snapshot-.*\.(png|html)')
         self.test_system_ip = None
         self.last_log = ''
         self.use_container = self.settings.getboolean('AnacondaWebUI', 'use_container')
@@ -169,6 +168,7 @@ class AnacondaWebUIWorkflow(IsolatedWorkflow):
 
         self.test_script_file = automation_data['script_file']
         self.test_case_name = automation_data['test_case']
+        self.re_browser_snapshot = re.compile(f'\d+-snapshot-{self.test_case_name}-.*\.(png|html)')
 
         self.test_repo_dir = None
         self.test_repo_name = automation_data.get('test_repo')
