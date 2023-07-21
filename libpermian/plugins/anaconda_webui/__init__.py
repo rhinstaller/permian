@@ -304,6 +304,7 @@ class AnacondaWebUIWorkflow(IsolatedWorkflow):
         self.log('Running: ' + ' '.join(cmd))
 
         test_env = {'WEBUI_TEST_DIR': os.path.abspath(os.path.join(self.webui_dir, 'test'))}
+        test_env['TEST_AUDIT_NO_SELINUX'] = '1'
         test_output = self.crc.openLogfile('output.txt', 'w', True)
 
         time.sleep(10) # Workaround, there is a race-condition, where WebUI is accessible but /run/anaconda/bus.address doesn't exist yet
