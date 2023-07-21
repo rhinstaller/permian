@@ -20,10 +20,10 @@ Managed by user
 ^^^^^^^^^^^^^^^
 - QEMU Virtualization hypervisor/s. Either local or remove hypervisor with ssh access
   can be used.
-- Event structure InstallationSourceStructure, this is what is going to be tested.
-  It can be obtained by conversion from compose structure or supplied directly::
+- Event structure InstallationSourceStructure or bootIso, this is what is going to be tested.
+  Both can be obtained by conversion from compose structure or supplied directly::
   
-    {
+    "InstallationSource": {
         "base_repo_id": "BaseOS",
         "repos": {
             "BaseOS": {
@@ -34,6 +34,12 @@ Managed by user
                 }
             }
         }
+    }
+
+  or::
+
+    "bootIso": {
+        "x86_64": "/path/to/boot.iso"
     }
 
 
@@ -101,7 +107,7 @@ Example of minimal execution section for running test from anaconda repo::
     execution:
         type: anaconda-webui
         automation_data:
-            script_file: ./ui/webui/test/integration/default.py
+            script_file: ./ui/webui/test/end2end/default.py
             test_case: DefaultInstallation
 
 Example of execution section with all options set::
@@ -158,7 +164,7 @@ We have special command that make this the easiest way to run WebUI test.
 4. (optional) create new test case and test script file in the anaconda repository
    we just cloned.
 
-   1. Create new file `anaconda/ui/webui/test/integration/my_new_test.tc.yaml` with
+   1. Create new file `anaconda/ui/webui/test/end2end/my_new_test.tc.yaml` with
       following content::
 
         name: My new test
@@ -170,14 +176,14 @@ We have special command that make this the easiest way to run WebUI test.
         execution:
           type: anaconda-webui
           automation_data:
-            script_file: ./ui/webui/test/integration/my_new_test.py
+            script_file: ./ui/webui/test/end2end/my_new_test.py
             test_case: MyNewTest
         instructions:
           steps:
             - step: Describe your test steps here
 
-   2. Copy any existing test script to `anaconda/ui/webui/test/integration/my_new_test.py`,
-      good examples are listed in `Integration tests examples <https://anaconda-installer.readthedocs.io/en/latest/testing.html#integration-tests-examples>`.
+   2. Copy any existing test script to `anaconda/ui/webui/test/end2end/my_new_test.py`,
+      good examples are listed in `Integration tests examples <https://anaconda-installer.readthedocs.io/en/latest/testing.html#end-to-end-tests-examples>`.
    3. Change test class name in the test script to `MyNewTest`
 
 5. Run the new test case::
@@ -210,7 +216,7 @@ Run test plan from Anaconda repo
    is InstallationSource event structure.::
 
     PYTHONPATH=../tplib ./pipeline run_event \
-      -o "library.directPath=../anaconda/ui/webui/test/integration/" \
+      -o "library.directPath=../anaconda/ui/webui/test/end2end/" \
       '{"type": "github.scheduled.preview",
         "InstallationSource": {
           "base_repo_id": "bootiso",
