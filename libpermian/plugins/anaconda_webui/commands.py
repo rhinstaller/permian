@@ -64,7 +64,7 @@ def run_awebui_tc_command(base_parser, args):
 
     os.environ.setdefault(
         "PIPELINE_library_directPath",
-        os.path.join(options.path_to_anaconda, 'ui/webui/test/integration/'),
+        os.path.join(options.path_to_anaconda, 'ui/webui/test/end2end/'),
     )
     os.environ.setdefault(
         "PIPELINE_AnacondaWebUI_anaconda_repo",
