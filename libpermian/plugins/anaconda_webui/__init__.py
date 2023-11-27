@@ -153,8 +153,8 @@ class AnacondaWebUIWorkflow(IsolatedWorkflow):
         self.debug = self.settings.getboolean('AnacondaWebUI', 'debug')
         self.test_timeout = self.settings.getint('AnacondaWebUI', 'test_timeout')
 
-        self.git_anaconda_repo = self.settings.get('AnacondaWebUI', 'anaconda_repo')
-        self.git_anaconda_branch = self.crc.configuration['branch']
+        self.git_webui_repo = self.settings.get('AnacondaWebUI', 'webui_repo')
+        self.git_webui_branch = self.crc.configuration['branch']
         self.git_cockpit_repo = self.settings.get('AnacondaWebUI', 'cockpit_repo')
         self.git_cockpit_branch = self.settings.get('AnacondaWebUI', 'cockpit_branch')
         self.git_bots_repo = self.settings.get('AnacondaWebUI', 'bots_repo')
@@ -213,20 +213,19 @@ class AnacondaWebUIWorkflow(IsolatedWorkflow):
                     self.container = ExecutionContainer(container_build_log)
 
             # Add self to instances using this branch setup
-            if self.git_anaconda_branch in self.instances:
-                self.instances[self.git_anaconda_branch].append(self)
+            if self.git_webui_branch in self.instances:
+                self.instances[self.git_webui_branch].append(self)
             else:
-                self.instances[self.git_anaconda_branch] = [self]
+                self.instances[self.git_webui_branch] = [self]
 
             # Create temporary directory for this branch setup - if it doesn't exists
-            if self.git_anaconda_branch not in self.temp_dirs.keys():
-                self.temp_dirs[self.git_anaconda_branch] = tempfile.TemporaryDirectory(dir='/var/tmp/', prefix="pipeline_awebui_")
+            if self.git_webui_branch not in self.temp_dirs.keys():
+                self.temp_dirs[self.git_webui_branch] = tempfile.TemporaryDirectory(dir='/var/tmp/', prefix="pipeline_awebui_")
                 clone_common = True
 
-            self.temp_dir = self.temp_dirs[self.git_anaconda_branch].name
+            self.temp_dir = self.temp_dirs[self.git_webui_branch].name
             os.chmod(self.temp_dir, 755)
-            self.anaconda_dir = os.path.join(self.temp_dir, 'anaconda')
-            self.webui_dir = os.path.join(self.anaconda_dir, 'ui/webui')
+            self.webui_dir = os.path.join(self.temp_dir, 'anaconda-webui')
 
             if self.test_repo_name:
                 self._clone_test_repo()
@@ -240,7 +239,7 @@ class AnacondaWebUIWorkflow(IsolatedWorkflow):
             if self.installation_source is None:
                 self._set_boot_iso_path()
 
-        self.test_workdir = self.anaconda_dir # CWD where the test is going to run
+        self.test_workdir = self.webui_dir # CWD where the test is going to run
         if self.test_repo_name:
             self.test_workdir = self.test_repo_dir
 
@@ -305,6 +304,7 @@ class AnacondaWebUIWorkflow(IsolatedWorkflow):
 
         test_env = {'WEBUI_TEST_DIR': os.path.abspath(os.path.join(self.webui_dir, 'test'))}
         test_env['TEST_AUDIT_NO_SELINUX'] = '1'
+        test_env['EXTENDED_LOGGING'] = '1'
         test_output = self.crc.openLogfile('output.txt', 'w', True)
 
         time.sleep(10) # Workaround, there is a race-condition, where WebUI is accessible but /run/anaconda/bus.address doesn't exist yet
@@ -387,11 +387,11 @@ class AnacondaWebUIWorkflow(IsolatedWorkflow):
 
         with self.setup_lock:
             # If this instance is the last one using temp dir -> remove it
-            self.instances[self.git_anaconda_branch].remove(self)
-            if len(self.instances[self.git_anaconda_branch]) == 0:
-                self.temp_dirs[self.git_anaconda_branch].cleanup()
+            self.instances[self.git_webui_branch].remove(self)
+            if len(self.instances[self.git_webui_branch]) == 0:
+                self.temp_dirs[self.git_webui_branch].cleanup()
                 
-                del self.instances[self.git_anaconda_branch]
+                del self.instances[self.git_webui_branch]
                 # Remove container image, if this was the last anacoda-webui workflow
                 if not self.instances:
                     self.container.remove_image()
@@ -579,21 +579,21 @@ class AnacondaWebUIWorkflow(IsolatedWorkflow):
         self.test_repo_dir = os.path.join(self.temp_dir, self.test_repo_name)
         if  not os.path.isdir(self.test_repo_dir):
             self.log(f'Clonning test repo {self.test_repo_url}')
-            self._clone_repo(self.test_repo_url, self.git_anaconda_branch, self.test_repo_dir)
+            self._clone_repo(self.test_repo_url, self.git_webui_branch, self.test_repo_dir)
 
     def _clone_common(self):
         """ Clones repositories common to all Anaconda WebUI tests """
         self.log(f'Clonning common repositories')
         bots_dir = os.path.join(self.webui_dir, 'bots')
-        cockpit_common_dir = os.path.join(self.anaconda_dir, 'ui/webui/test/common')
-        parsed_anaconda_url = urllib.parse.urlparse(self.git_anaconda_repo)
+        cockpit_common_dir = os.path.join(self.webui_dir, 'test/common')
+        parsed_webui_url = urllib.parse.urlparse(self.git_webui_repo)
 
-        if parsed_anaconda_url.scheme == 'file':
+        if parsed_webui_url.scheme == 'file':
             # Create copy of anaconda repo
-            shutil.copytree(parsed_anaconda_url.path, self.anaconda_dir, symlinks=True, ignore_dangling_symlinks=True)
+            shutil.copytree(parsed_webui_url.path, self.webui_dir, symlinks=True, ignore_dangling_symlinks=True)
         else:
             # clone anaconda
-            self._clone_repo(self.git_anaconda_repo, self.git_anaconda_branch, self.anaconda_dir)
+            self._clone_repo(self.git_webui_repo, self.git_webui_branch, self.webui_dir)
 
         if not os.path.exists(cockpit_common_dir):
             with tempfile.TemporaryDirectory() as temp_dir:
