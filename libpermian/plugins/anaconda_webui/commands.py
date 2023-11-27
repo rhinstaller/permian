@@ -6,14 +6,14 @@ from libpermian.plugins import api
 @api.cli.register_command_parser('run_awebui_tc')
 def run_awebui_tc_command(base_parser, args):
     parser = base_parser
-    parser.add_argument('path_to_anaconda',
-                        help='Path to local Anaconda git repository where the test case is located')
+    parser.add_argument('path_to_webui',
+                        help='Path to local Anaconda-webui git repository where the test case is located')
     parser.add_argument('test_case_name',
                         help='Name of the test case as specified in tc.yaml')
     source_group = parser.add_mutually_exclusive_group()
     source_group.add_argument('--install-source',
                         default='https://fedorapeople.org/groups/anaconda/webui_permian_tests/sources/periodic/x86_64/',
-                        help='URL of the installation source (compose os directory or unpack iso')
+                        help='URL of the installation source (compose os directory or iso')
     source_group.add_argument('--compose',
                         help='Compose ID of a compose that should be used as installation source')
     parser.add_argument('--compose-url',
@@ -64,11 +64,11 @@ def run_awebui_tc_command(base_parser, args):
 
     os.environ.setdefault(
         "PIPELINE_library_directPath",
-        os.path.join(options.path_to_anaconda, 'ui/webui/test/end2end/'),
+        os.path.join(options.path_to_webui, 'test/test_cases/'),
     )
     os.environ.setdefault(
-        "PIPELINE_AnacondaWebUI_anaconda_repo",
-        'file://' + os.path.abspath(options.path_to_anaconda),
+        "PIPELINE_AnacondaWebUI_webui_repo",
+        'file://' + os.path.abspath(options.path_to_webui),
     )
 
     return options, json.dumps(event)
