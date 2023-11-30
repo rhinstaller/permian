@@ -50,12 +50,12 @@ Examples can be found in `default settings file <https://github.com/rhinstaller/
 
 AnacondaWebUI
 ^^^^^^^^^^^^^
-- **anaconda_repo** - URL to Anaconda git repository or path to local directory (use file://)
-- **cockpit_repo** - URL to Cockpit git repository, if anaconda_repo is local directory and
-  ``anaconda/ui/webui/test/common`` exists, this repo won't be used.
+- **webui_repo** - URL to anaconda-webui git repository or path to local directory (use file://)
+- **cockpit_repo** - URL to Cockpit git repository, if webui_repo is local directory and
+  ``./test/common`` exists, this repo won't be used.
 - **cockpit_branch** - Cockpit git branch
-- **bots_repo** - URL to Cockpit Bots git repository, if anaconda_repo is local directory and
-  ``anaconda/ui/webui/bots`` exists, this repo won't be used.
+- **bots_repo** - URL to Cockpit Bots git repository, if webui_repo is local directory and
+  ``./bots`` exists, this repo won't be used.
 - **bots_branch** - Cockpit Bots git branch
 - **hypervisor_vm_limit** - How many VMs can this workflow use at once
 - **use_container** - Run npm command and the test itself inside podman container.
@@ -90,8 +90,8 @@ are:
 
 - **script_file** - path to the test script, by default the base for this path
   is anaconda git repository
-- **test_case** - python class in the script file (test script file can contain 
-  multiple test cases)
+- **test_case** - python class and method in the script file (test script file
+  can contain multiple test cases)
 
 Optional automation_data:
 
@@ -107,8 +107,8 @@ Example of minimal execution section for running test from anaconda repo::
     execution:
         type: anaconda-webui
         automation_data:
-            script_file: ./ui/webui/test/end2end/default.py
-            test_case: DefaultInstallation
+            script_file: ./test/check-progress
+            test_case: TestInstallationProgress.testBasic
 
 Example of execution section with all options set::
 
@@ -116,7 +116,7 @@ Example of execution section with all options set::
         type: anaconda-webui
         automation_data:
             script_file: ./check-navigation.py
-            test_case: TestNavigation
+            test_case: TestNavigation.testInstall
             test_repo: my-special-tests
             additional_repos: ['AppStream', 'CRB']
             kernel_cmdline: 'nosmt'
@@ -164,7 +164,7 @@ We have special command that make this the easiest way to run WebUI test.
 4. (optional) create new test case and test script file in the anaconda repository
    we just cloned.
 
-   1. Create new file `anaconda/ui/webui/test/end2end/my_new_test.tc.yaml` with
+   1. Create new file `anaconda-webui/test/test_cases/my_new_test.tc.yaml` with
       following content::
 
         name: My new test
@@ -176,33 +176,31 @@ We have special command that make this the easiest way to run WebUI test.
         execution:
           type: anaconda-webui
           automation_data:
-            script_file: ./ui/webui/test/end2end/my_new_test.py
-            test_case: MyNewTest
+            script_file: ./test/my_new_test.py
+            test_case: MyNewTest.testMethod
         instructions:
           steps:
             - step: Describe your test steps here
 
-   2. Copy any existing test script to `anaconda/ui/webui/test/end2end/my_new_test.py`,
-      good examples are listed in `Integration tests examples <https://anaconda-installer.readthedocs.io/en/latest/testing.html#end-to-end-tests-examples>`.
-   3. Change test class name in the test script to `MyNewTest`
+   2. Create your test script in `anaconda-webui/test/my_new_test.py`
 
 5. Run the new test case::
 
-    PYTHONPATH=../tplib ./pipeline run_awebui_tc ../anaconda 'My new test'
+    PYTHONPATH=../tplib ./pipeline run_awebui_tc ../anaconda-webui 'My new test'
 
   .. note::
-    This command makes sure your local anaconda repository is used as the source of the
-    test script. Usually Permian clones its own copy of the anaconda repository. 
+    This command makes sure your local anaconda-webui repository is used as the source of the
+    test script. Usually Permian clones its own copy of the anaconda-webui repository.
 
-Run test plan from Anaconda repo
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Run test plan from Anaconda-webui repo
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 1. Follow the guide on page :ref:`Quick start<Quick start>` and get Permian
    running without an container.
 2. By default your system will be used as :ref:`hypervisor`, so make sure libvirtd is running.
-3. Clone Anaconda repository, we are going to use the testplan library from it::
+3. Clone Anaconda-webui repository, we are going to use the testplan library from it::
 
-    git clone https://github.com/rhinstaller/anaconda.git
+    git clone https://github.com/rhinstaller/anaconda-webui.git
 
   .. note::
     In this case the test scripts are going to be sourced separetly by the workflow.
@@ -216,7 +214,7 @@ Run test plan from Anaconda repo
    is InstallationSource event structure.::
 
     PYTHONPATH=../tplib ./pipeline run_event \
-      -o "library.directPath=../anaconda/ui/webui/test/end2end/" \
+      -o "library.directPath=../anaconda-webui/test/test_cases/" \
       '{"type": "github.scheduled.preview",
         "InstallationSource": {
           "base_repo_id": "bootiso",
