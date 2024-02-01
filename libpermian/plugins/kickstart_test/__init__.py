@@ -198,6 +198,7 @@ class KickstartTestWorkflow(GroupedWorkflow):
         self.retry = self.settings.getboolean('kickstart_test', 'retry_on_failure')
         self.timeout = self.settings.get('kickstart_test', 'timeout')
         self.boot_opts = self.settings.get('kickstart_test', 'added_boot_options')
+        self.updates_img = self.settings.get('kickstart_test', 'kstest_updates_image')
 
     def _create_overrides_file(self, content):
         with tempfile.NamedTemporaryFile("w", delete=False, prefix="defaults-") as f:
@@ -356,6 +357,9 @@ class KickstartTestWorkflow(GroupedWorkflow):
                 "--run-args",
                 f"-eKSTEST_EXTRA_BOOTOPTS={boot_opts}",
             ]
+
+        if self.updates_img:
+            command = command + ["--updates", self.updates_img]
 
         command = command + tests
         LOGGER.info(f"Runner is starting. {current_results.summary_message()}")
