@@ -1,7 +1,7 @@
-FROM quay.io/centos/centos:stream8
+FROM docker.io/redhat/ubi8:latest
 
 # pipeline dependecies
-RUN yum -y install git python3 python3-flask python3-requests python3-libxml2 python3-yaml python3-magic
+RUN yum -y install git python3 python3-requests python3-libxml2 python3-yaml
 # pipeline tests dependecies
 RUN yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm; \
     yum -y install make python3-pylint diffutils
@@ -11,9 +11,7 @@ RUN yum -y install yum-utils; \
     yum-config-manager --enable beaker-client; \
     yum -y install python3-bugzilla beaker-client python3-productmd
 
-# docs dependencies
-RUN yum-config-manager --enable powertools; \
-    yum -y install python3-sphinx
+RUN pip3 install python-magic flask sphinx
 
 # fetch other libraries and tools
 WORKDIR /root
