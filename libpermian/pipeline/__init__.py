@@ -125,9 +125,10 @@ class Pipeline():
         Start WebUI daemon thread and start providing the pipeline status over
         HTTP.
         """
-        self.webUI = WebUI(self)
-        self.webUI.start()
-        self.webUI.waitUntilStarted()
+        if self.settings.getboolean('WebUI', 'enabled'):
+            self.webUI = WebUI(self)
+            self.webUI.start()
+            self.webUI.waitUntilStarted()
 
     def _cloneLibrary(self, target_directory=None):
         """

@@ -59,7 +59,7 @@ def render_static(pipeline):
 
     Creates static version of WebUI that can be accessed after pipeline ends.
     """
-    if not pipeline.settings.get('WebUI', 'create_static_webui'):
+    if not pipeline.settings.get('WebUI', 'create_static_webui') or not pipeline.settings.getboolean('WebUI', 'enabled'):
         return
 
     LOGGER.info('Generating static WebUI')
