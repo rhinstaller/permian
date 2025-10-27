@@ -33,7 +33,7 @@ class ComposeEvent(Event):
 class ComposeStructure(BaseStructure):
     id_regex = re.compile(r'(?P<product>\w+)-(?P<version>(?P<major>\d+)(\.(?P<minor>\d+))?(\.(?P<qr>\d))?)((-updates)?(-(?P<parent>\w+)-\d)?-(?P<date>\d+)(\.(?P<flag>.))?\.(?P<spin>\d+))?')
 
-    def __init__(self, settings, id, product=None, version=None, major=None, minor=None, qr=None, date=None, respin=None, location=None, location_http=None, compose_type=None, nightly=None, development=None, label=None, prerelease=None, tags=None, new_tag=None, layered=None, parent_product=None, parent_version=None, available_in=None):
+    def __init__(self, settings, id, product=None, version=None, major=None, minor=None, qr=None, date=None, respin=None, location=None, location_http=None, compose_type=None, nightly=None, development=None, label=None, prerelease=None, tags=None, new_tag=None, layered=None, parent_product=None, parent_version=None, available_in=None, release_type=None):
         super().__init__(settings)
         self.id = id
         self._matches = re.match(self.id_regex, self.id)
@@ -50,6 +50,7 @@ class ComposeStructure(BaseStructure):
         self._location = location
         self.location_http = location_http
         self._type = compose_type
+        self._release_type = release_type
         self._nightly = nightly
         self.development = development if development is not None else self._matches.group('flag') == 'd'
         self._label = label
@@ -82,6 +83,12 @@ class ComposeStructure(BaseStructure):
         if self._nightly is not None:
             return self._nightly
         return self.type == "nightly"
+
+    @property
+    def release_type(self):
+        if self._release_type is not None:
+            return self._release_type
+        return self.composeinfo.metadata.info.release.type
 
     @property
     def label(self):
