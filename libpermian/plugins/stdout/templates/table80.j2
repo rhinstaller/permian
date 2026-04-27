@@ -6,6 +6,11 @@
 +----------------------------+-------------------+-----------------------------|
 | {{ crc.configuration.values()|join(', ')|setlen(26) }} | {{ crc.result.result|setlen(17) }} | {{ crc.result.state|setlen(27) }} |
 +----------------------------+-------------------+-----------------------------+
-| {{ crc.workflow.groupDisplayStatus(crc.id)|setlen(76) }} |
+{%- set status = crc.workflow.groupDisplayStatus(crc.id) %}
+{%- if status|length <= 76 %}
+| {{ status|setlen(76) }} |
+{%- else %}
+| {{ status }}
+{%- endif %}
 +==============================================================================+
 {%- endfor %}
