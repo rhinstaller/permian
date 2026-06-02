@@ -135,7 +135,9 @@ class TestTestingFarmWorkflow(unittest.TestCase):
         call_args = mock_post.call_args
         self.assertEqual(call_args[0][0], 'https://api.testing-farm.io/v0.1/requests')
         self.assertEqual(call_args[1]['headers']['Authorization'], 'Bearer test-token')
+        self.assertEqual(call_args[1]['headers']['Connection'], 'close')
         self.assertEqual(call_args[1]['json'], workflow.payload)
+        self.assertEqual(call_args[1]['timeout'], (10, 60))
 
 
     @patch('libpermian.plugins.testing_farm.requests.get')
@@ -156,7 +158,8 @@ class TestTestingFarmWorkflow(unittest.TestCase):
         self.assertEqual(status['state'], 'running')
         mock_get.assert_called_once_with(
             'https://api.testing-farm.io/v0.1/requests/request-123',
-            headers={'Authorization': 'Bearer test-token'}
+            headers={'Authorization': 'Bearer test-token', 'Connection': 'close'},
+            timeout=(10, 30)
         )
 
     @patch('libpermian.plugins.testing_farm.requests.delete')
@@ -172,7 +175,8 @@ class TestTestingFarmWorkflow(unittest.TestCase):
 
         mock_delete.assert_called_once_with(
             'https://api.testing-farm.io/v0.1/requests/request-123',
-            headers={'Authorization': 'Bearer test-token'}
+            headers={'Authorization': 'Bearer test-token', 'Connection': 'close'},
+            timeout=(10, 30)
         )
 
     @patch('libpermian.plugins.testing_farm.requests.get')
