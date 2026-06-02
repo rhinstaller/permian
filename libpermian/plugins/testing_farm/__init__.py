@@ -121,8 +121,8 @@ class TestingFarmWorkflow(IsolatedWorkflow):
 
         try:
             self.request_id = self.submit_test()
-        except requests.HTTPError as e:
-            LOGGER.error(f'Can\'t submit test {e}')
+        except requests.RequestException as e:
+            LOGGER.error(f'Can\'t submit test: {e}')
             self.reportResult(Result('not started', 'ERROR', final=True))
             return
         
@@ -174,8 +174,8 @@ class TestingFarmWorkflow(IsolatedWorkflow):
                 elif state in state2state_map and self.crc.result.state != state2state_map[state]:
                     self.reportResult(Result(state2state_map[state]))
 
-            except requests.HTTPError as e:
-                LOGGER.error(f'Can\'t get test status {e}')
+            except requests.RequestException as e:
+                LOGGER.error(f'Can\'t get test status: {e}')
                 status_attempts += 1
                 if status_attempts == self.max_status_retry:
                     self.reportResult(Result('DNF', 'ERROR', final=True))
@@ -220,7 +220,7 @@ class TestingFarmWorkflow(IsolatedWorkflow):
             self.delete_request()
             self.reportResult(Result('canceled', None, final=True))
             return True
-        except requests.HTTPError as e:
+        except requests.RequestException as e:
             LOGGER.error(f"Test termination failed: {e}")
             self.reportResult(Result('canceled', 'ERROR', final=True))
             return False
@@ -250,13 +250,15 @@ class TestingFarmWorkflow(IsolatedWorkflow):
         """
         headers = {
             "Content-Type": "application/json",
-            "Authorization": f"Bearer {self.api_token}"
+            "Authorization": f"Bearer {self.api_token}",
+            "Connection": "close"
         }
 
         response = requests.post(
             f"{self.api_url}/requests",
             headers=headers,
-            json=self.payload
+            json=self.payload,
+            timeout=(10, 60)
         )
         response.raise_for_status()
 
@@ -274,12 +276,14 @@ class TestingFarmWorkflow(IsolatedWorkflow):
             requests.HTTPError: If the API request fails.
         """
         headers = {
-            "Authorization": f"Bearer {self.api_token}"
+            "Authorization": f"Bearer {self.api_token}",
+            "Connection": "close"
         }
 
         response = requests.get(
             f"{self.api_url}/requests/{self.request_id}",
-            headers=headers
+            headers=headers,
+            timeout=(10, 30)
         )
         response.raise_for_status()
 
@@ -293,12 +297,14 @@ class TestingFarmWorkflow(IsolatedWorkflow):
             requests.HTTPError: If the cancellation request fails.
         """
         headers = {
-            "Authorization": f"Bearer {self.api_token}"
+            "Authorization": f"Bearer {self.api_token}",
+            "Connection": "close"
         }
 
         response = requests.delete(
             f"{self.api_url}/requests/{self.request_id}",
-            headers=headers
+            headers=headers,
+            timeout=(10, 30)
         )
         response.raise_for_status()
 
@@ -312,9 +318,9 @@ class TestingFarmWorkflow(IsolatedWorkflow):
             artifacts_url (str): URL to the artifacts directory listing.
         """
         try:
-            response = requests.get(artifacts_url)
+            response = requests.get(artifacts_url, timeout=(10, 30))
             response.raise_for_status()
-        except requests.HTTPError as e:
+        except requests.RequestException as e:
             LOGGER.error(f"Can\'t collect artifacts: {e}")
             return
         
