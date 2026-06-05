@@ -34,7 +34,7 @@ class BaseReportSender(threading.Thread, metaclass=abc.ABCMeta):
     :param settings: Pipeline settings object
     :type settings: libpermian.settings.Settings
     """
-    description_format = "Configuration: %s - Result: %s, %s - Beaker links: %s - Issues: %s ; "
+    description_format = "Configuration: %s - Result: %s, %s - Artifacts links: %s - Issues: %s ; "
     issue_format = "%s"
     def __init__(self, testplan, reporting_structure, caseRunConfigurations, event, settings, issueAnalyzerProxy, group=None):
         super().__init__()
@@ -244,7 +244,7 @@ class BaseReportSender(threading.Thread, metaclass=abc.ABCMeta):
                     ', '.join([
                         link
                         for link
-                        in crc.result.extra_fields.get('beaker_links', ['None'])
+                        in crc.result.extra_fields.get('artifacts_links', ['None'])
                     ]),
                     '\n'.join([
                         self.issue_format % issue

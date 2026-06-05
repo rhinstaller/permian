@@ -7,9 +7,9 @@
             <properties>
             </properties>
             <system-out>
-            Configuration: {&#39;conf&#39;: 1, &#39;initial_delay&#39;: 0.5, &#39;variant&#39;: &#39;test&#39;} - Result: complete, FAIL - Beaker links: None - Issues:  ; Configuration: {&#39;conf&#39;: 2, &#39;initial_delay&#39;: 0.5, &#39;variant&#39;: &#39;test&#39;} - Result: complete, FAIL - Beaker links: None - Issues:  ; 
+            Configuration: {&#39;conf&#39;: 1, &#39;initial_delay&#39;: 0.5, &#39;variant&#39;: &#39;test&#39;} - Result: complete, FAIL - Artifacts links: None - Issues:  ; Configuration: {&#39;conf&#39;: 2, &#39;initial_delay&#39;: 0.5, &#39;variant&#39;: &#39;test&#39;} - Result: complete, FAIL - Artifacts links: None - Issues:  ; 
             </system-out>
-            <error message="Configuration: {&#39;conf&#39;: 1, &#39;initial_delay&#39;: 0.5, &#39;variant&#39;: &#39;test&#39;} - Result: complete, FAIL - Beaker links: None - Issues:  ; Configuration: {&#39;conf&#39;: 2, &#39;initial_delay&#39;: 0.5, &#39;variant&#39;: &#39;test&#39;} - Result: complete, FAIL - Beaker links: None - Issues:  ; " type="error" />
+            <error message="Configuration: {&#39;conf&#39;: 1, &#39;initial_delay&#39;: 0.5, &#39;variant&#39;: &#39;test&#39;} - Result: complete, FAIL - Artifacts links: None - Issues:  ; Configuration: {&#39;conf&#39;: 2, &#39;initial_delay&#39;: 0.5, &#39;variant&#39;: &#39;test&#39;} - Result: complete, FAIL - Artifacts links: None - Issues:  ; " type="error" />
         </testcase>
     </testsuite>
 </testsuites>

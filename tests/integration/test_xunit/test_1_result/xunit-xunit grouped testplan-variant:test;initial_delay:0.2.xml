@@ -7,7 +7,7 @@
             <properties>
             </properties>
             <system-out>
-            Configuration: {&#39;conf&#39;: 1, &#39;initial_delay&#39;: 0.2, &#39;variant&#39;: &#39;test&#39;} - Result: complete, PASS - Beaker links: None - Issues:  ; Configuration: {&#39;conf&#39;: 2, &#39;initial_delay&#39;: 0.2, &#39;variant&#39;: &#39;test&#39;} - Result: complete, PASS - Beaker links: None - Issues:  ; 
+            Configuration: {&#39;conf&#39;: 1, &#39;initial_delay&#39;: 0.2, &#39;variant&#39;: &#39;test&#39;} - Result: complete, PASS - Artifacts links: None - Issues:  ; Configuration: {&#39;conf&#39;: 2, &#39;initial_delay&#39;: 0.2, &#39;variant&#39;: &#39;test&#39;} - Result: complete, PASS - Artifacts links: None - Issues:  ; 
             </system-out>
         </testcase>
     </testsuite>
