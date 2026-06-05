@@ -7,17 +7,17 @@
             <properties>
             </properties>
             <system-out>
-            Configuration: {&#39;conf&#39;: 1} - Result: DNF, None - Beaker links: None - Issues:  ; Configuration: {&#39;conf&#39;: 2} - Result: DNF, None - Beaker links: None - Issues:  ; 
+            Configuration: {&#39;conf&#39;: 1} - Result: DNF, None - Artifacts links: None - Issues:  ; Configuration: {&#39;conf&#39;: 2} - Result: DNF, None - Artifacts links: None - Issues:  ; 
             </system-out>
-            <skipped message="Configuration: {&#39;conf&#39;: 1} - Result: DNF, None - Beaker links: None - Issues:  ; Configuration: {&#39;conf&#39;: 2} - Result: DNF, None - Beaker links: None - Issues:  ; " type="skipped" />
+            <skipped message="Configuration: {&#39;conf&#39;: 1} - Result: DNF, None - Artifacts links: None - Issues:  ; Configuration: {&#39;conf&#39;: 2} - Result: DNF, None - Artifacts links: None - Issues:  ; " type="skipped" />
         </testcase>
         <testcase name="testing plugin case 1" classname="xunit testplan 1">
             <properties>
             </properties>
             <system-out>
-            Configuration: {&#39;conf&#39;: 1, &#39;initial_delay&#39;: 0.1} - Result: complete, FAIL - Beaker links: None - Issues:  ; Configuration: {&#39;conf&#39;: 2, &#39;initial_delay&#39;: 0.1} - Result: complete, FAIL - Beaker links: None - Issues:  ; 
+            Configuration: {&#39;conf&#39;: 1, &#39;initial_delay&#39;: 0.1} - Result: complete, FAIL - Artifacts links: None - Issues:  ; Configuration: {&#39;conf&#39;: 2, &#39;initial_delay&#39;: 0.1} - Result: complete, FAIL - Artifacts links: None - Issues:  ; 
             </system-out>
-            <error message="Configuration: {&#39;conf&#39;: 1, &#39;initial_delay&#39;: 0.1} - Result: complete, FAIL - Beaker links: None - Issues:  ; Configuration: {&#39;conf&#39;: 2, &#39;initial_delay&#39;: 0.1} - Result: complete, FAIL - Beaker links: None - Issues:  ; " type="error" />
+            <error message="Configuration: {&#39;conf&#39;: 1, &#39;initial_delay&#39;: 0.1} - Result: complete, FAIL - Artifacts links: None - Issues:  ; Configuration: {&#39;conf&#39;: 2, &#39;initial_delay&#39;: 0.1} - Result: complete, FAIL - Artifacts links: None - Issues:  ; " type="error" />
         </testcase>
     </testsuite>
 </testsuites>
