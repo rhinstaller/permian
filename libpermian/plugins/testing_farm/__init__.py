@@ -159,7 +159,7 @@ class TestingFarmWorkflow(IsolatedWorkflow):
                     if status['result']['overall'] in result2result_map:
                         self.reportResult(Result('complete',
                                                 result2result_map[status['result']['overall']],
-                                                final=True))
+                                                final=True, artifacts_links=[self.weblink] if self.weblink else []))
                         break
                     else:
                         self.reportResult(Result('complete', 'ERROR', final=True))
@@ -168,7 +168,7 @@ class TestingFarmWorkflow(IsolatedWorkflow):
                 elif state in ['error', 'canceled']:
                     self.reportResult(Result(state2state_map[state],
                                             state2result_map[state],
-                                            final=True))
+                                            final=True, artifacts_links=[self.weblink] if self.weblink else []))
                     break
 
                 elif state in state2state_map and self.crc.result.state != state2state_map[state]:
