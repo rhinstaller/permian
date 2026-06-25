@@ -84,6 +84,23 @@ class TestEventCompose(unittest.TestCase):
         self.assertFalse(event.compose.layered)
         self.assertEqual(event.compose.location, 'http://example.com/here/RHEL-8.3.0-20200701.2')
 
+    def test_rhel_variant_idonly(self):
+        event = EventFactory.make(self.settings, CliFactory.parse('compose', ['RHEL-FULL-8.3.0-20200701.2'])[1])
+        self.assertEqual(event.compose.id, 'RHEL-FULL-8.3.0-20200701.2')
+        self.assertEqual(event.compose.version, '8.3.0')
+        self.assertEqual(event.compose.major, '8')
+        self.assertEqual(event.compose.minor, '3')
+        self.assertEqual(event.compose.qr, '0')
+        self.assertEqual(event.compose.spin, '2')
+        self.assertEqual(event.compose.date, '20200701')
+        self.assertEqual(event.compose.product, 'RHEL')
+        self.assertIsNone(event.compose.parent_product)
+        self.assertIsNone(event.compose.parent_version)
+        self.assertFalse(event.compose.nightly)
+        self.assertTrue(event.compose.prerelease)
+        self.assertFalse(event.compose.layered)
+        self.assertEqual(event.compose.location, 'http://example.com/here/RHEL-FULL-8.3.0-20200701.2')
+
     def test_supp_idonly(self):
         event = EventFactory.make(self.settings, CliFactory.parse('compose', ['Supp-9.2.1-RHEL-8-20200811.n.5'])[1])
         self.assertEqual(event.compose.id, 'Supp-9.2.1-RHEL-8-20200811.n.5')
