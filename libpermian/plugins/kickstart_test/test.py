@@ -538,3 +538,28 @@ class TestParamsToBootIso(unittest.TestCase):
         kstest_workflow = KickstartTestWorkflow(testRuns, [], 'x86_64')
         kstest_workflow.setup()
         self.assertAlmostEqual(kstest_workflow.boot_iso_url, DUMMY_BOOT_ISO_URL)
+
+class TestSupportedSettings(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.library = Library('./tests/test_library/kickstart-test/basic')
+        cls.settings = Settings(
+            cmdline_overrides={},
+            environment={},
+            settings_locations=['./tests/test_library/kickstart-test/test-settings.ini']
+        )
+
+    def testSupportedSettingsParsing(self):
+        event = TestFakeMinimalEvent(self.settings)
+        testRuns = TestRuns(self.library, event, self.settings)
+        kstest_workflow = KickstartTestWorkflow(testRuns, [], 'x86_64')
+        self.assertEqual(kstest_workflow.runner_command, ["runner_cmd", "arg1", "arg2"])
+        self.assertEqual(kstest_workflow.boot_opts, "inst.xtimeout=100 inst.sshd=1")
+        self.assertEqual(kstest_workflow.retry, False)
+        self.assertEqual(kstest_workflow.timeout, "0")
+        self.assertEqual(kstest_workflow.ksrepo,
+                         "https://github.com/rhinstaller/kickstart-tests.git")
+        self.assertEqual(kstest_workflow.ksrepo_branch, "master")
+        self.assertEqual(kstest_workflow.ksrepo_local_dir, "/var/tmp/kickstart-tests")
+        self.assertEqual(kstest_workflow.updates_img,
+                         "http://cobra02/users/rv/updates.getmac.img")
