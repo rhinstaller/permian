@@ -72,6 +72,8 @@ class TestAssignWorkflows1(unittest.TestCase):
         WorkflowFactory.restore_workflow_classes()
 
     def test_isolated(self):
+        workflow1 = None
+        workflow2 = None
         for caserun in self.testruns.caseRunConfigurations:
             if caserun.testcase.name == 'test_isolated 1':
                 workflow1 = caserun.workflow
@@ -83,6 +85,9 @@ class TestAssignWorkflows1(unittest.TestCase):
         self.assertNotEqual(workflow1, workflow2)
 
     def test_grouped_all(self):
+        workflow1 = None
+        workflow2 = None
+        workflow3 = None
         for caserun in self.testruns.caseRunConfigurations:
             if caserun.testcase.name == 'test_grouped 1':
                 workflow1 = caserun.workflow
@@ -98,6 +103,7 @@ class TestAssignWorkflows1(unittest.TestCase):
         self.assertEqual(workflow2, workflow3)
 
     def test_manual(self):
+        workflow = None
         for caserun in self.testruns.caseRunConfigurations:
             if caserun.testcase.name == 'testcase 1':
                 workflow = caserun.workflow
@@ -105,6 +111,7 @@ class TestAssignWorkflows1(unittest.TestCase):
         self.assertIsInstance(workflow, ManualWorkflow)
 
     def test_unknown(self):
+        workflow = None
         for caserun in self.testruns.caseRunConfigurations:
             if caserun.testcase.name == 'testcase 2':
                 workflow = caserun.workflow
@@ -124,6 +131,9 @@ class TestAssignWorkflows2(unittest.TestCase):
         WorkflowFactory.restore_workflow_classes()
 
     def test_grouped_by_config(self):
+        workflow1 = None
+        workflow2 = None
+        workflow3 = None
         for caserun in self.testruns.caseRunConfigurations:
             if caserun.testcase.name == 'test_grouped 1':
                 workflow1 = caserun.workflow
