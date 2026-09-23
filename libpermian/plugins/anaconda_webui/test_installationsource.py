@@ -36,22 +36,22 @@ class TestFromCompose(unittest.TestCase):
         mock_compose = MockComposeStructure('RHEL', ('AppStream', 'BaseOS', 'CRB'))
         installation_source = InstallationSourceStructure.from_compose(mock_compose)
 
-        self.assertEquals(installation_source.kernel_path('x86_64'), 'http://example.com/BaseOS/x86_64/linux')
-        self.assertEquals(installation_source.initrd_path('x86_64'), 'http://example.com/BaseOS/x86_64/initrd')
-        self.assertEquals(installation_source.kernel_path('aarch64'), 'http://example.com/BaseOS/aarch64/linux')
-        self.assertEquals(installation_source.initrd_path('aarch64'), 'http://example.com/BaseOS/aarch64/initrd')
+        self.assertEqual(installation_source.kernel_path('x86_64'), 'http://example.com/BaseOS/x86_64/linux')
+        self.assertEqual(installation_source.initrd_path('x86_64'), 'http://example.com/BaseOS/x86_64/initrd')
+        self.assertEqual(installation_source.kernel_path('aarch64'), 'http://example.com/BaseOS/aarch64/linux')
+        self.assertEqual(installation_source.initrd_path('aarch64'), 'http://example.com/BaseOS/aarch64/initrd')
 
-        self.assertEquals(installation_source.base_repo['x86_64']['os'], 'http://example.com/BaseOS/x86_64/os')
+        self.assertEqual(installation_source.base_repo['x86_64']['os'], 'http://example.com/BaseOS/x86_64/os')
 
-        self.assertEquals(installation_source.repos['AppStream']['x86_64'], {"os": "http://example.com/AppStream/x86_64/os"})
+        self.assertEqual(installation_source.repos['AppStream']['x86_64'], {"os": "http://example.com/AppStream/x86_64/os"})
 
     def test_conversion_fedora(self):
         mock_compose = MockComposeStructure('Fedora', ('Everything',))
         installation_source = InstallationSourceStructure.from_compose(mock_compose)
 
-        self.assertEquals(installation_source.kernel_path('x86_64'), 'http://example.com/Everything/x86_64/linux')
-        self.assertEquals(installation_source.initrd_path('x86_64'), 'http://example.com/Everything/x86_64/initrd')
-        self.assertEquals(installation_source.kernel_path('aarch64'), 'http://example.com/Everything/aarch64/linux')
-        self.assertEquals(installation_source.initrd_path('aarch64'), 'http://example.com/Everything/aarch64/initrd')
+        self.assertEqual(installation_source.kernel_path('x86_64'), 'http://example.com/Everything/x86_64/linux')
+        self.assertEqual(installation_source.initrd_path('x86_64'), 'http://example.com/Everything/x86_64/initrd')
+        self.assertEqual(installation_source.kernel_path('aarch64'), 'http://example.com/Everything/aarch64/linux')
+        self.assertEqual(installation_source.initrd_path('aarch64'), 'http://example.com/Everything/aarch64/initrd')
 
-        self.assertEquals(installation_source.base_repo['x86_64']['os'], 'http://example.com/Everything/x86_64/os')
+        self.assertEqual(installation_source.base_repo['x86_64']['os'], 'http://example.com/Everything/x86_64/os')

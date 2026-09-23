@@ -23,7 +23,7 @@ class TestEverythingEvent(unittest.TestCase):
         }'''
 
         event = EventFactory.make(self.settings, event_string)
-        self.assertEquals(event.additional_testplans_data,
+        self.assertEqual(event.additional_testplans_data,
                           [{'name': 'Everything',
                               'point_person': 'tester@example.com',
                               'artifact_type': 'everything',
@@ -42,7 +42,7 @@ class TestEverythingEvent(unittest.TestCase):
          }
         }'''
         event = EventFactory.make(self.settings, event_string)
-        self.assertEquals(event.additional_testplans_data,
+        self.assertEqual(event.additional_testplans_data,
                           [{'name': 'Everything',
                             'point_person': 'tester@example.com',
                             'artifact_type': 'everything',
