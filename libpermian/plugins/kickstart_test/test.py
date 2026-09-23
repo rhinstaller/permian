@@ -78,7 +78,7 @@ class TestFakeKstestParamsOnly(Event):
                 'platform': "rhel9",
                 'urls': {
                     'x86_64': {
-                        'installation_tree': 'http://example.org/the-rhel-9/compose/BaseOS/x86_64/os'
+                        'installation_tree': 'http://example.invalid/the-rhel-9/compose/BaseOS/x86_64/os'
                     }
                 }
             }
@@ -96,9 +96,9 @@ class TestFakeScenariosEventRhel9(Event):
                 'platform': "rhel9",
                 'urls': {
                     'x86_64': {
-                        'installation_tree': 'http://example.org/the-rhel-9/compose/BaseOS/x86_64/os',
-                        'modular_url': 'http://example.org/the-rhel-9/compose/AppStream/x86_64/os',
-                        'ftp_url': 'ftp://example.org/the-rhel-9/compose/BaseOS/x86_64/os'
+                        'installation_tree': 'http://example.invalid/the-rhel-9/compose/BaseOS/x86_64/os',
+                        'modular_url': 'http://example.invalid/the-rhel-9/compose/AppStream/x86_64/os',
+                        'ftp_url': 'ftp://example.invalid/the-rhel-9/compose/BaseOS/x86_64/os'
                     }
                 }
             },
@@ -523,7 +523,7 @@ class TestParamsToBootIso(unittest.TestCase):
         testRuns = TestRuns(self.library, event, self.settings)
         kstest_workflow = KickstartTestWorkflow(testRuns, [], 'x86_64')
         kstest_workflow.setup()
-        self.assertAlmostEqual(kstest_workflow.boot_iso_url, 'http://example.org/the-rhel-9/compose/BaseOS/x86_64/os/images/boot.iso')
+        self.assertAlmostEqual(kstest_workflow.boot_iso_url, 'http://example.invalid/the-rhel-9/compose/BaseOS/x86_64/os/images/boot.iso')
 
     def testNoConversion(self):
         event = TestFakeMinimalEvent(self.settings)
