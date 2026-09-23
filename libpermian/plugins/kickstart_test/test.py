@@ -3,6 +3,7 @@ import os
 import copy
 import shutil
 from textwrap import dedent
+from unittest.mock import patch
 
 from libpermian.testruns import TestRuns
 from libpermian.events.base import Event
@@ -163,7 +164,8 @@ class TestKickstartTestWrorkflow(unittest.TestCase):
                     executed_workflows.add(id(caseRunConfiguration.workflow))
         self.assertEqual(len(executed_workflows), 1)
 
-    def testParamsOnlyWorkflowRun(self):
+    @patch('libpermian.plugins.kickstart_test.KickstartTestWorkflow.fetch_boot_iso')
+    def testParamsOnlyWorkflowRun(self, fetch_boot_iso):
         event = TestFakeKstestParamsOnly(self.settings)
         testRuns = TestRuns(self.library, event, self.settings)
         executed_workflows = set()
@@ -518,7 +520,8 @@ class TestParamsToBootIso(unittest.TestCase):
             settings_locations=[],
         )
 
-    def testConversion(self):
+    @patch('libpermian.plugins.kickstart_test.KickstartTestWorkflow.fetch_boot_iso')
+    def testConversion(self, fetch_boot_iso):
         event = TestFakeKstestParamsOnly(self.settings)
         testRuns = TestRuns(self.library, event, self.settings)
         kstest_workflow = KickstartTestWorkflow(testRuns, [], 'x86_64')
