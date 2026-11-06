@@ -168,7 +168,7 @@ class AnacondaWebUIWorkflow(IsolatedWorkflow):
 
         self.test_script_file = automation_data['script_file']
         self.test_case_name = automation_data['test_case']
-        self.re_browser_snapshot = re.compile(f'\d+-snapshot-{self.test_case_name}-.*\.(png|html)')
+        self.re_browser_snapshot = re.compile(fr'\d+-snapshot-{self.test_case_name}-.*\.(png|html)')
 
         self.test_repo_dir = None
         self.test_repo_name = automation_data.get('test_repo')

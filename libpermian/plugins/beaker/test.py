@@ -45,4 +45,4 @@ class TestBeakerComposeExtended(unittest.TestCase):
         # VERSION AVAILABLE IN USED BEAKER INSTANCE
         expected_major = '8'
         compose = BeakerCompose(None, 'RHEL-20.30', 'RHEL', '20', '30')
-        self.assertRegex(compose.rtt_accepted, f'^RHEL-{expected_major}\.[0-9]')
+        self.assertRegex(compose.rtt_accepted, rf'^RHEL-{expected_major}\.[0-9]')

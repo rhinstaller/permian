@@ -23,7 +23,7 @@ def make_git_testrepo(src_directory):
     a git repositry is returned.
     """
     numprefix = re.compile('^([0-9]+-)?')
-    git_directory = re.sub('\.src$', '.git', src_directory)
+    git_directory = re.sub(r'\.src$', '.git', src_directory)
     os.mkdir(git_directory)
     subprocess.run(['git', 'init', '-q'], cwd=git_directory, check=True)
     for srcbranchdir in sorted(os.listdir(src_directory)):
