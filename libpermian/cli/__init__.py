@@ -20,7 +20,7 @@ from .factory import CliFactory
 from . import builtin
 
 def main(*raw_args):
-    """
+    r"""
     Main pipeline function which should be called when the pipeline is executed
     from CLI. The command name is detected based on the first argument (name of
     the file from which the pipeline is executed) and corresponding command
