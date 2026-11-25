@@ -297,5 +297,73 @@ class TestTestingFarmWorkflow(unittest.TestCase):
         # Verify the result was updated only when needed and final result is PASS
         self.assertEqual(reportResult_calls, [('queued', None), ('running', None), ('complete', 'PASS')])
 
+    def test_setup_no_hardware(self):
+        """Test that setup() produces no 'hardware' key when automation_data has none."""
+        workflow = TestingFarmWorkflow(self.testRuns, self.crcList)
+        workflow.setup()
+        self.assertNotIn('hardware', workflow.payload['environments'][0])
+
+    def test_setup_with_hardware(self):
+        """Test that a valid hardware dict is passed through unchanged into the payload."""
+        hw = {
+            'virtualization': {'is-supported': True},
+            'cpu': {'processors': '>= 4'},
+            'memory': '>= 8 GB',
+        }
+        self.testcase.execution.automation_data['hardware'] = hw
+        workflow = TestingFarmWorkflow(self.testRuns, self.crcList)
+        workflow.setup()
+        self.assertEqual(workflow.payload['environments'][0]['hardware'], hw)
+
+    def test_hardware_wrong_type(self):
+        """Test that a non-dict, empty-dict or null hardware value causes ERROR and no submission."""
+        for bad_value in ['a string', [], {}, None]:
+            with self.subTest(hardware=bad_value):
+                self.testcase.execution.automation_data['hardware'] = bad_value
+                # Reset result to initial state
+                self.crc.result = Result('not started', None, False)
+
+                workflow = TestingFarmWorkflow(self.testRuns, self.crcList)
+
+                reported = []
+                def track(result, crc=self.crc, rep=reported):
+                    rep.append(result)
+                    crc.result = result
+                workflow.reportResult = track
+
+                with patch('libpermian.plugins.testing_farm.requests.post') as mock_post:
+                    workflow.setup()
+                    workflow.execute()
+                    mock_post.assert_not_called()
+
+                self.assertEqual(len(reported), 1)
+                self.assertEqual(reported[0].result, 'ERROR')
+                self.assertTrue(reported[0].final)
+
+    def test_dry_execute_after_hardware_error(self):
+        """Test that dry_execute() is a no-op when setup() already reported a final result."""
+        self.testcase.execution.automation_data['hardware'] = 'a string'
+        self.crc.result = Result('not started', None, False)
+
+        workflow = TestingFarmWorkflow(self.testRuns, self.crcList)
+
+        reported = []
+        def track(result):
+            reported.append(result)
+            self.crc.result = result
+        workflow.reportResult = track
+
+        workflow.setup()
+        # payload was never built; dry_execute must return without touching it
+        self.assertFalse(hasattr(workflow, 'payload'))
+        workflow.dry_execute()
+
+        # the ERROR from setup() is still the only, final result - no PASS was reported
+        self.assertEqual(len(reported), 1)
+        self.assertEqual(reported[0].result, 'ERROR')
+        self.assertTrue(reported[0].final)
+        self.assertEqual(self.crc.result.result, 'ERROR')
+
+
 if __name__ == '__main__':
     unittest.main()
