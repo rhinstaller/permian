@@ -78,7 +78,13 @@ class TestingFarmWorkflow(IsolatedWorkflow):
 
         Constructs the Testing Farm API request payload with environment
         variables, test configuration, and compose information. Merges
-        any custom env_vars from test metadata. Reports 'not started' state.
+        any custom env_vars from test metadata. An optional 'hardware'
+        mapping in automation_data is passed through unchanged as
+        environments[0].hardware (see the tmt hardware spec:
+        https://tmt.readthedocs.io/en/stable/spec/hardware.html);
+        it fully replaces any hardware defined in the tmt plan. A
+        'hardware' key that is present but not a non-empty dict fails
+        the run with an ERROR result. Reports 'not started' state.
         """
 
         env_vars = {
@@ -88,6 +94,18 @@ class TestingFarmWorkflow(IsolatedWorkflow):
         }
         if 'env_vars' in self.crc.testcase.execution.automation_data:
             env_vars.update(self.crc.testcase.execution.automation_data['env_vars'])
+
+        hardware = self.crc.testcase.execution.automation_data.get('hardware')
+        # Only an absent key means "no hardware requirements"; a 'hardware' key
+        # that is present but null or not a non-empty dict is treated as a mistake.
+        if 'hardware' in self.crc.testcase.execution.automation_data \
+                and not (isinstance(hardware, dict) and hardware):
+            LOGGER.error(
+                f'Test case {self.crc.testcase.name!r}: automation_data.hardware '
+                f'must be a non-empty dict, got {type(hardware).__name__!r}: {hardware!r}'
+            )
+            self.reportResult(Result('not started', 'ERROR', final=True))
+            return
 
         self.payload = {
             "test": {
@@ -108,6 +126,9 @@ class TestingFarmWorkflow(IsolatedWorkflow):
             ]
         }
 
+        if hardware:
+            self.payload["environments"][0]["hardware"] = hardware
+
         self.reportResult(Result('not started'))
 
     def execute(self):
@@ -117,6 +138,9 @@ class TestingFarmWorkflow(IsolatedWorkflow):
         Submits the test request, polls for status updates, and reports
         results. Collects artifacts when the test completes.
         """
+        if self.crc.result.final:
+            return
+
         self.log(f'Submitting test request to Testing Farm, payload:\n{json.dumps(self.payload, indent=2)}')
 
         try:
@@ -199,6 +223,9 @@ class TestingFarmWorkflow(IsolatedWorkflow):
         Logs the payload that would be sent and reports a successful result.
         Used when the pipeline is in dry-run mode.
         """
+        if self.crc.result.final:
+            return
+
         LOGGER.info(f'DRY RUN: Would request {self.api_url}/requests\n {json.dumps(self.payload, indent=2)}')
         self.reportResult(Result('complete', 'PASS', final=True))
 
